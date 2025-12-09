@@ -9,7 +9,7 @@ import { registerScoreIpc } from './ipc/scores.js';
 import { registerConfigIpc } from './ipc/config.js';
 import { registerCountriesIpc } from './ipc/countries.js';
 import { registerQuizIpc } from './ipc/quiz.js';
-import { createQuizService } from './services/quiz/service.js';
+import { createQuizService } from './services/quiz.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
