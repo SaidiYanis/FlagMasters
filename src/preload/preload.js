@@ -7,6 +7,9 @@ contextBridge.exposeInMainWorld('api', {
   countries: {
     list: () => ipcRenderer.invoke('countries:list')
   },
+  quiz: {
+    generate: (payload) => ipcRenderer.invoke('quiz:generate', payload)
+  },
   scores: {
     add: (payload) => ipcRenderer.invoke('score:add', payload),
     list: () => ipcRenderer.invoke('score:list')

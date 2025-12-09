@@ -8,12 +8,15 @@ import { createCountriesService } from './services/countries.js';
 import { registerScoreIpc } from './ipc/scores.js';
 import { registerConfigIpc } from './ipc/config.js';
 import { registerCountriesIpc } from './ipc/countries.js';
+import { registerQuizIpc } from './ipc/quiz.js';
+import { createQuizService } from './services/quiz/service.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const scoreService = createScoreService(app);
 const configService = createConfigService(app);
 const countriesService = createCountriesService();
+const quizService = createQuizService();
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -55,6 +58,7 @@ function registerIpcHandlers() {
   registerConfigIpc(ipcMain, configService);
   registerScoreIpc(ipcMain, scoreService);
   registerCountriesIpc(ipcMain, countriesService);
+  registerQuizIpc(ipcMain, quizService);
 }
 
 app.whenReady().then(() => {

@@ -43,23 +43,23 @@
       <!-- Écran de jeu -->
       <div v-else>
         <div class="info-bar">
-          <div>Question : {{ questionNumber }} / {{ totalQuestions }}</div>
+          <div>Question : {{ questionIndex }} / {{ totalQuestions }}</div>
           <div>Score : {{ score }}</div>
         </div>
 
-        <div class="question-text" v-if="currentCountry">
+        <div class="question-text" v-if="currentQuestion">
           {{ questionText }}
         </div>
 
-        <div class="flag-container" v-if="currentCountry && gameMode === 'flag-to-country'">
+        <div class="flag-container" v-if="currentQuestion && quizOptions.mode === 'flag-to-country'">
           <div class="flag-frame" :style="flagBgStyle">
             <img :src="flagUrl" alt="Drapeau à deviner" @error="onFlagError">
           </div>
         </div>
 
-        <div class="answers" v-if="gameMode === 'flag-to-country'">
+        <div class="answers" v-if="quizOptions.mode === 'flag-to-country'">
           <button
-            v-for="opt in options"
+            v-for="opt in currentQuestion?.options || []"
             :key="opt.code"
             class="answer-btn"
             :class="buttonClass(opt)"
@@ -72,7 +72,7 @@
 
         <div class="answers" v-else>
           <button
-            v-for="opt in options"
+            v-for="opt in currentQuestion?.options || []"
             :key="opt.code"
             class="answer-btn"
             :class="buttonClass(opt)"
@@ -137,13 +137,8 @@
 
 <script setup>
 import { computed, onMounted, reactive, toRefs } from 'vue';
-import { QuizService } from './quizService';
+import { QuizService } from './services/quizService';
 import { loadInitialConfig, applyConfigToState } from './services/configService';
-
-const QUIZ_CONFIG = Object.freeze({
-  baseTotalQuestions: 10,
-  optionsPerQuestion: 4
-});
 
 const DIFFICULTY_RANGES = Object.freeze({
   easy: { min: 130, max: 200 },
@@ -162,19 +157,20 @@ const FLAG_BG_MAP = Object.freeze({
 });
 
 const state = reactive({
-  countries: [],
-  selectedDifficulty: 'easy',
-  gameMode: 'country-to-flag',
+  quizOptions: {
+    difficulty: 'easy',
+    mode: 'country-to-flag',
+    totalQuestions: 10
+  },
   screen: 'menu', // 'menu' | 'game'
   menuGameMode: 'country-to-flag',
   menuDifficulty: 'easy',
-  menuQuestions: QUIZ_CONFIG.baseTotalQuestions,
-  totalQuestions: QUIZ_CONFIG.baseTotalQuestions,
-  questionPool: [],
-  questionNumber: 0,
+  menuQuestions: 10,
+  totalQuestions: 0,
+  questionIndex: 0,
   score: 0,
-  currentCountry: null,
-  options: [],
+  currentQuestion: null,
+  questions: [],
   answered: false,
   selectedCode: null,
   message: 'Choisis une réponse pour commencer.',
@@ -189,13 +185,12 @@ const state = reactive({
 });
 
 const {
-  selectedDifficulty,
-  gameMode,
+  quizOptions,
   totalQuestions,
-  questionNumber,
+  questionIndex,
   score,
-  currentCountry,
-  options,
+  currentQuestion,
+  questions,
   answered,
   message,
   screen,
@@ -210,31 +205,21 @@ const {
   showNameForm
 } = toRefs(state);
 
-const filteredCountries = computed(() => {
-  const level = DIFFICULTY_RANGES[state.selectedDifficulty];
-  if (!level || state.selectedDifficulty === 'mixed') return state.countries;
-
-  const list = state.countries.filter(
-    c => c.difficulty >= level.min && c.difficulty <= level.max
-  );
-  return list.length ? list : state.countries;
-});
-
 const questionText = computed(() => {
-  if (!state.currentCountry) return '';
-  if (state.gameMode === 'country-to-flag') {
-    return `Quel est le drapeau de ${state.currentCountry.name} ?`;
+  if (!state.currentQuestion) return '';
+  if (state.quizOptions.mode === 'country-to-flag') {
+    return `Quel est le drapeau de ${state.currentQuestion.name} ?`;
   }
   return `À quel pays appartient ce drapeau ?`;
 });
 
 const flagUrl = computed(() => {
-  if (!state.currentCountry || state.flagLoadError) return '';
-  return QuizService.flagUrlFor(state.currentCountry, 'main');
+  if (!state.currentQuestion || state.flagLoadError) return '';
+  return state.currentQuestion.flagUrl;
 });
 
-const isFinished = computed(() => state.questionNumber >= state.totalQuestions);
-const flagBgStyle = computed(() => flagBgStyleFor(state.currentCountry));
+const isFinished = computed(() => state.questionIndex >= state.totalQuestions);
+const flagBgStyle = computed(() => flagBgStyleFor(state.currentQuestion));
 const sortedScores = computed(() => {
   const arr = scores.value || [];
   return [...arr].sort((a, b) => b.successRate - a.successRate || b.totalQuestions - a.totalQuestions);
@@ -257,57 +242,33 @@ function resetQuestionState(message = '') {
   state.message = message;
 }
 
-function buildOptions(correct, pool) {
-  return QuizService.buildOptions(correct, pool, QUIZ_CONFIG.optionsPerQuestion);
-}
-
-function buildQuestionPool() {
-  const source = filteredCountries.value;
-  const shuffled = QuizService.shuffle(source);
-  state.totalQuestions = Math.min(state.totalQuestions, shuffled.length);
-  state.questionPool = shuffled.slice(0, state.totalQuestions);
-}
-
 function resetQuiz() {
   state.score = 0;
-  state.questionNumber = 0;
-  state.currentCountry = null;
-  state.options = [];
+  state.questionIndex = 0;
+  state.currentQuestion = null;
+  state.questions = [];
   resetQuestionState('Choisis une réponse pour commencer.');
-  buildQuestionPool();
-
-  if (state.totalQuestions > 0) {
-    nextQuestion();
-  } else {
-    state.message = 'Aucun pays disponible pour le quiz.';
-  }
 }
 
 function nextQuestion() {
-  if (isFinished.value) {
-    state.message = `Quiz terminé ! Score final : ${state.score} / ${state.totalQuestions}`;
-    return;
-  }
-
   resetQuestionState('');
-  const index = state.questionNumber;
-  const correct = state.questionPool[index];
-  state.currentCountry = correct;
-  state.options = buildOptions(correct, filteredCountries.value);
-  state.questionNumber++;
+  const index = state.questionIndex;
+  const q = state.questions[index];
+  state.currentQuestion = q;
+  state.questionIndex++;
 }
 
 function handleAnswer(option) {
-  if (state.answered || !state.currentCountry) return;
+  if (state.answered || !state.currentQuestion) return;
 
   state.answered = true;
   state.selectedCode = option.code;
 
-  if (option.code === state.currentCountry.code) {
+  if (option.code === state.currentQuestion.code) {
     state.score++;
     state.message = 'Bravo, bonne réponse ! ✅';
   } else {
-    state.message = `Raté ❌ La bonne réponse était ${state.currentCountry.name}.`;
+    state.message = `Raté ❌ La bonne réponse était ${state.currentQuestion.name}.`;
   }
 
   if (isFinished.value) {
@@ -318,31 +279,30 @@ function handleAnswer(option) {
 
 function buttonClass(option) {
   if (!state.answered) return '';
-  if (option.code === state.currentCountry?.code) return 'correct';
-  if (option.code === state.selectedCode && option.code !== state.currentCountry?.code) return 'wrong';
+  if (option.code === state.currentQuestion?.code) return 'correct';
+  if (option.code === state.selectedCode && option.code !== state.currentQuestion?.code) return 'wrong';
   return '';
 }
 
 function onFlagError() {
   state.flagLoadError = true;
-  state.message = `Impossible de charger le drapeau pour ${state.currentCountry?.name || 'ce pays'}.`;
+  state.message = `Impossible de charger le drapeau pour ${state.currentQuestion?.name || 'ce pays'}.`;
 }
 
 function startGame() {
-  state.selectedDifficulty = state.menuDifficulty;
-  state.gameMode = state.menuGameMode;
-  state.totalQuestions = state.menuQuestions;
+  state.quizOptions.difficulty = state.menuDifficulty;
+  state.quizOptions.mode = state.menuGameMode;
+  state.quizOptions.totalQuestions = state.menuQuestions;
   state.screen = 'game';
-  resetQuiz();
+  fetchQuiz();
 }
 
 function backToMenu() {
   state.screen = 'menu';
-  state.questionPool = [];
-  state.currentCountry = null;
-  state.options = [];
+  state.questions = [];
+  state.currentQuestion = null;
   state.message = 'Choisis tes options puis lance la partie.';
-  state.questionNumber = 0;
+  state.questionIndex = 0;
   state.score = 0;
   state.answered = false;
   state.showNameForm = false;
@@ -400,6 +360,27 @@ function showScores() {
   loadScores().finally(() => {
     state.scoreModal = true;
   });
+}
+
+async function fetchQuiz() {
+  resetQuiz();
+  if (!window.api?.quiz?.generate) {
+    state.message = 'Quiz non disponible (API quiz manquante).';
+    return;
+  }
+  const payload = {
+    mode: state.quizOptions.mode,
+    difficulty: state.quizOptions.difficulty,
+    totalQuestions: state.quizOptions.totalQuestions
+  };
+  const res = await window.api.quiz.generate(payload);
+  state.questions = Array.isArray(res?.questions) ? res.questions : [];
+  state.totalQuestions = res?.totalQuestions || state.questions.length;
+  if (state.totalQuestions > 0) {
+    nextQuestion();
+  } else {
+    state.message = 'Aucun pays disponible pour le quiz.';
+  }
 }
 
 async function loadCountries() {

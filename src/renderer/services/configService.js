@@ -4,7 +4,7 @@ export async function loadInitialConfig(api) {
     const cfg = await api.read();
     return cfg && typeof cfg === 'object' ? cfg : null;
   } catch {
-    return null;
+    return { error: 'config_unavailable' };
   }
 }
 
