@@ -1,7 +1,7 @@
 export async function loadInitialConfig(api) {
-  if (!api?.readConfig) return null;
+  if (!api?.read) return null;
   try {
-    const cfg = await api.readConfig();
+    const cfg = await api.read();
     return cfg && typeof cfg === 'object' ? cfg : null;
   } catch {
     return null;

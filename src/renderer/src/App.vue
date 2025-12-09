@@ -137,7 +137,6 @@
 
 <script setup>
 import { computed, onMounted, reactive, toRefs } from 'vue';
-import { COUNTRIES } from './countries';
 import { QuizService } from './quizService';
 import { loadInitialConfig, applyConfigToState } from './services/configService';
 
@@ -163,7 +162,7 @@ const FLAG_BG_MAP = Object.freeze({
 });
 
 const state = reactive({
-  countries: COUNTRIES,
+  countries: [],
   selectedDifficulty: 'easy',
   gameMode: 'country-to-flag',
   screen: 'menu', // 'menu' | 'game'
@@ -376,8 +375,8 @@ async function saveAndReturnMenu() {
     : state.selectedPlayerName;
   const name = chosen || 'Anonyme';
   const payload = { name, correct: state.score, total: state.totalQuestions };
-  if (window.api?.saveScore) {
-    const res = await window.api.saveScore(payload);
+  if (window.api?.scores?.add) {
+    const res = await window.api.scores.add(payload);
     if (res?.successRate !== undefined) {
       state.message = `Moyenne de réussite pour ${name} : ${res.successRate}%`;
     }
@@ -391,8 +390,8 @@ async function saveAndReturnMenu() {
 }
 
 async function loadScores() {
-  if (!window.api?.listScores) return;
-  const list = await window.api.listScores();
+  if (!window.api?.scores?.list) return;
+  const list = await window.api.scores.list();
   state.scores = Array.isArray(list) ? list : [];
   state.players = state.scores.map(s => s.name);
 }
@@ -403,11 +402,25 @@ function showScores() {
   });
 }
 
+async function loadCountries() {
+  if (window.api?.countries?.list) {
+    const list = await window.api.countries.list();
+    if (Array.isArray(list) && list.length) {
+      state.countries = list;
+      return;
+    }
+  }
+  state.countries = [];
+}
+
 onMounted(() => {
-  loadInitialConfig(window.api).then(cfg => {
-    state.loadedConfig = cfg;
-    applyConfigToState(cfg, state, DIFFICULTY_RANGES);
-  }).finally(() => {
+  Promise.all([
+    loadInitialConfig(window.api?.config).then(cfg => {
+      state.loadedConfig = cfg;
+      applyConfigToState(cfg, state, DIFFICULTY_RANGES);
+    }),
+    loadCountries()
+  ]).finally(() => {
     loadScores();
   });
 });

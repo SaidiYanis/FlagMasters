@@ -3,10 +3,17 @@ import path from 'path';
 import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { createScoreService } from './services/scores.js';
+import { createConfigService } from './services/config.js';
+import { createCountriesService } from './services/countries.js';
+import { registerScoreIpc } from './ipc/scores.js';
+import { registerConfigIpc } from './ipc/config.js';
+import { registerCountriesIpc } from './ipc/countries.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const scoreService = createScoreService(app);
+const configService = createConfigService(app);
+const countriesService = createCountriesService();
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -45,23 +52,9 @@ async function readConfigFile() {
 }
 
 function registerIpcHandlers() {
-  ipcMain.handle('config:read', async () => {
-    return readConfigFile();
-  });
-  ipcMain.handle('score:add', async (_event, payload) => {
-    try {
-      return await scoreService.add(payload || {});
-    } catch (err) {
-      return { successRate: 0, error: err?.message || 'save_error' };
-    }
-  });
-  ipcMain.handle('score:list', async () => {
-    try {
-      return await scoreService.list();
-    } catch (err) {
-      return [];
-    }
-  });
+  registerConfigIpc(ipcMain, configService);
+  registerScoreIpc(ipcMain, scoreService);
+  registerCountriesIpc(ipcMain, countriesService);
 }
 
 app.whenReady().then(() => {
