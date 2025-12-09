@@ -4,7 +4,14 @@ import vue from '@vitejs/plugin-vue';
 
 export default defineConfig({
   main: {
-    entry: 'src/main/main.js'
+    entry: 'src/main/main.js',
+    vite: {
+      build: {
+        rollupOptions: {
+          external: []
+        }
+      }
+    }
   },
   preload: {
     input: {

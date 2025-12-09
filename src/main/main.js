@@ -1,10 +1,12 @@
-const { app, BrowserWindow, ipcMain } = require('electron');
-const path = require('path');
-const fs = require('fs/promises');
+import { app, BrowserWindow, ipcMain } from 'electron';
+import path from 'path';
+import fs from 'fs/promises';
+import { fileURLToPath } from 'url';
+import { createScoreService } from './services/scores.js';
 
-function scoresFilePath() {
-  return path.join(app.getPath('userData'), 'scores.json');
-}
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const scoreService = createScoreService(app);
 
 function createWindow() {
   const win = new BrowserWindow({
@@ -42,72 +44,24 @@ async function readConfigFile() {
   }
 }
 
-async function ensureScoresFile() {
-  const file = scoresFilePath();
-  try {
-    const raw = await fs.readFile(file, 'utf-8');
-    return JSON.parse(raw);
-  } catch {
-    const empty = { players: {} };
-    await fs.mkdir(path.dirname(file), { recursive: true });
-    await fs.writeFile(file, JSON.stringify(empty, null, 2), 'utf-8');
-    return empty;
-  }
-}
-
-async function addScore({ name, correct, total }) {
-  if (!name || !total || total <= 0) return { successRate: 0 };
-  const safeName = String(name).trim() || 'Anonyme';
-  const data = await ensureScoresFile();
-  const player = data.players[safeName] || { totalCorrect: 0, totalQuestions: 0 };
-  player.totalCorrect += correct;
-  player.totalQuestions += total;
-  data.players[safeName] = player;
-  await fs.writeFile(scoresFilePath(), JSON.stringify(data, null, 2), 'utf-8');
-  await writeScoresTxt(data);
-  const successRate = Math.round((player.totalCorrect / player.totalQuestions) * 100);
-  return { successRate };
-}
-
-async function listScores() {
-  const data = await ensureScoresFile();
-  return Object.entries(data.players).map(([name, stats]) => {
-    const rate = stats.totalQuestions > 0 ? Math.round((stats.totalCorrect / stats.totalQuestions) * 100) : 0;
-    return { name, successRate: rate, totalQuestions: stats.totalQuestions, totalCorrect: stats.totalCorrect };
-  });
-}
-
 function registerIpcHandlers() {
   ipcMain.handle('config:read', async () => {
     return readConfigFile();
   });
   ipcMain.handle('score:add', async (_event, payload) => {
     try {
-      return await addScore(payload || {});
+      return await scoreService.add(payload || {});
     } catch (err) {
       return { successRate: 0, error: err?.message || 'save_error' };
     }
   });
   ipcMain.handle('score:list', async () => {
     try {
-      return await listScores();
+      return await scoreService.list();
     } catch (err) {
       return [];
     }
   });
-}
-
-async function writeScoresTxt(data) {
-  const file = path.join(app.getPath('userData'), 'scores.txt');
-  const lines = Object.entries(data.players).map(([name, stats]) => {
-    const rate = stats.totalQuestions > 0 ? Math.round((stats.totalCorrect / stats.totalQuestions) * 100) : 0;
-    return `${name} : ${rate}% (${stats.totalCorrect}/${stats.totalQuestions})`;
-  }).sort((a, b) => {
-    const ra = parseInt(a.split(':')[1], 10) || 0;
-    const rb = parseInt(b.split(':')[1], 10) || 0;
-    return rb - ra;
-  });
-  await fs.writeFile(file, lines.join('\n'), 'utf-8');
 }
 
 app.whenReady().then(() => {

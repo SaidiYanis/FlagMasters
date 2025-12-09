@@ -139,6 +139,7 @@
 import { computed, onMounted, reactive, toRefs } from 'vue';
 import { COUNTRIES } from './countries';
 import { QuizService } from './quizService';
+import { loadInitialConfig, applyConfigToState } from './services/configService';
 
 const QUIZ_CONFIG = Object.freeze({
   baseTotalQuestions: 10,
@@ -403,20 +404,12 @@ function showScores() {
 }
 
 onMounted(() => {
-  if (window.api?.readConfig) {
-    window.api.readConfig()
-      .then(cfg => {
-        state.loadedConfig = cfg;
-        if (cfg?.totalQuestions) {
-          state.menuQuestions = Math.max(1, Math.min(50, cfg.totalQuestions));
-        }
-        if (cfg?.difficulty && DIFFICULTY_RANGES[cfg.difficulty]) {
-          state.menuDifficulty = cfg.difficulty;
-        }
-      })
-      .catch(() => {});
-  }
-  loadScores();
+  loadInitialConfig(window.api).then(cfg => {
+    state.loadedConfig = cfg;
+    applyConfigToState(cfg, state, DIFFICULTY_RANGES);
+  }).finally(() => {
+    loadScores();
+  });
 });
 </script>
 
