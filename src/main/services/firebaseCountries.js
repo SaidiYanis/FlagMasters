@@ -45,7 +45,10 @@ function normalize(doc) {
   const flagUrl = data.flagUrl || mainLink;
   const flagThumbUrl =
     data.flagThumbUrl || `https://flagcdn.com/w160/${code.toLowerCase()}.png`;
-  const enabled = data.enabled !== false;
+  const enabled =
+    data.enabled === undefined
+      ? true
+      : data.enabled === true || data.enabled === 'true' || data.enabled === 1;
   return {
     code,
     ...data,

@@ -83,7 +83,9 @@ export function createQuizService() {
       flagUrl: c.flagUrl || flagUrlFor(c, 'main'),
       flagThumbUrl: c.flagThumbUrl || flagUrlFor(c, 'answer')
     }));
-    const pool = filteredCountries(normalized, difficulty);
+    // Filtre de sécurité : on ne conserve que les pays activés
+    const enabledOnly = normalized.filter((c) => c.enabled !== false);
+    const pool = filteredCountries(enabledOnly, difficulty);
     if (!pool.length) {
       return { mode, difficulty, totalQuestions: 0, questions: [] };
     }
