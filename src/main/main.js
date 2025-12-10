@@ -1,6 +1,5 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'path';
-import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { createScoreService } from './services/scores.js';
 import { createConfigService } from './services/config.js';
@@ -40,17 +39,6 @@ function createWindow() {
   } else {
     // Packaged/preview mode: load the built static HTML
     win.loadFile(rendererIndexPath);
-  }
-}
-
-async function readConfigFile() {
-  const configPath = path.join(app.getPath('userData'), 'config.json');
-  try {
-    const raw = await fs.readFile(configPath, 'utf-8');
-    return JSON.parse(raw);
-  } catch (err) {
-    // Fallback: retourne une config par défaut sans planter le renderer
-    return { totalQuestions: 10, difficulty: 'easy' };
   }
 }
 

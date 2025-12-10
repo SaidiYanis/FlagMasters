@@ -1,6 +1,5 @@
 import { readFile } from 'fs/promises';
 import path from 'path';
-import { app as electronApp } from 'electron';
 import { initializeApp, cert, getApps, getApp } from 'firebase-admin/app';
 import { getAuth as getAdminAuth } from 'firebase-admin/auth';
 import { getFirestore as getAdminFirestore } from 'firebase-admin/firestore';
