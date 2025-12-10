@@ -1,4 +1,17 @@
-export const COUNTRIES = Object.freeze([
+import { readFile } from 'fs/promises';
+import { initializeApp, cert } from 'firebase-admin/app';
+import { getFirestore } from 'firebase-admin/firestore';
+
+// Charge la clé de service admin (assure-toi que FM-serviceAccountKey.json est ignoré par git)
+const serviceAccount = JSON.parse(
+  await readFile(new URL('./FM-serviceAccountKey.json', import.meta.url), 'utf-8')
+);
+
+initializeApp({ credential: cert(serviceAccount) });
+const db = getFirestore();
+
+// Liste des pays avec code ISO, nom et score de difficulte
+const COUNTRIES = [
   { code: 'FR', name: 'France', difficulty: 200 },
   { code: 'BE', name: 'Belgique', difficulty: 155 },
   { code: 'CH', name: 'Suisse', difficulty: 150 },
@@ -12,19 +25,19 @@ export const COUNTRIES = Object.freeze([
   { code: 'ES', name: 'Espagne', difficulty: 195 },
   { code: 'IT', name: 'Italie', difficulty: 200 },
   { code: 'DK', name: 'Danemark', difficulty: 140 },
-  { code: 'SE', name: 'Suède', difficulty: 165 },
-  { code: 'NO', name: 'Norvège', difficulty: 160 },
+  { code: 'SE', name: 'Suede', difficulty: 165 },
+  { code: 'NO', name: 'Norvege', difficulty: 160 },
   { code: 'FI', name: 'Finlande', difficulty: 150 },
   { code: 'IS', name: 'Islande', difficulty: 130 },
   { code: 'PL', name: 'Pologne', difficulty: 170 },
-  { code: 'CZ', name: 'Tchéquie', difficulty: 140 },
+  { code: 'CZ', name: 'Tchequie', difficulty: 140 },
   { code: 'SK', name: 'Slovaquie', difficulty: 120 },
   { code: 'HU', name: 'Hongrie', difficulty: 140 },
   { code: 'RO', name: 'Roumanie', difficulty: 140 },
   { code: 'BG', name: 'Bulgarie', difficulty: 110 },
   { code: 'HR', name: 'Croatie', difficulty: 140 },
-  { code: 'SI', name: 'Slovénie', difficulty: 110 },
-  { code: 'GR', name: 'Grèce', difficulty: 180 },
+  { code: 'SI', name: 'Slovenie', difficulty: 110 },
+  { code: 'GR', name: 'Grece', difficulty: 180 },
   { code: 'EE', name: 'Estonie', difficulty: 90 },
   { code: 'LV', name: 'Lettonie', difficulty: 90 },
   { code: 'LT', name: 'Lituanie', difficulty: 90 },
@@ -37,17 +50,17 @@ export const COUNTRIES = Object.freeze([
   { code: 'SM', name: 'Saint-Marin', difficulty: 90 },
   { code: 'VA', name: 'Vatican', difficulty: 130 },
   { code: 'RS', name: 'Serbie', difficulty: 120 },
-  { code: 'ME', name: 'Monténégro', difficulty: 100 },
-  { code: 'MK', name: 'Macédoine du Nord', difficulty: 95 },
+  { code: 'ME', name: 'Montenegro', difficulty: 100 },
+  { code: 'MK', name: 'Macedoine du Nord', difficulty: 95 },
   { code: 'AL', name: 'Albanie', difficulty: 120 },
-  { code: 'BA', name: 'Bosnie-Herzégovine', difficulty: 100 },
+  { code: 'BA', name: 'Bosnie-Herzegovine', difficulty: 100 },
   { code: 'MD', name: 'Moldavie', difficulty: 90 },
   { code: 'MA', name: 'Maroc', difficulty: 175 },
-  { code: 'DZ', name: 'Algérie', difficulty: 160 },
+  { code: 'DZ', name: 'Algerie', difficulty: 160 },
   { code: 'TN', name: 'Tunisie', difficulty: 155 },
-  { code: 'EG', name: 'Égypte', difficulty: 185 },
+  { code: 'EG', name: 'Egypte', difficulty: 185 },
   { code: 'SA', name: 'Arabie saoudite', difficulty: 170 },
-  { code: 'AE', name: 'Émirats arabes unis', difficulty: 165 },
+  { code: 'AE', name: 'Emirats arabes unis', difficulty: 165 },
   { code: 'QA', name: 'Qatar', difficulty: 150 },
   { code: 'IR', name: 'Iran', difficulty: 150 },
   { code: 'IQ', name: 'Irak', difficulty: 140 },
@@ -55,33 +68,33 @@ export const COUNTRIES = Object.freeze([
   { code: 'LB', name: 'Liban', difficulty: 150 },
   { code: 'SY', name: 'Syrie', difficulty: 150 },
   { code: 'OM', name: 'Oman', difficulty: 130 },
-  { code: 'KW', name: 'Koweït', difficulty: 130 },
-  { code: 'BH', name: 'Bahreïn', difficulty: 110 },
-  { code: 'YE', name: 'Yémen', difficulty: 100 },
-  { code: 'GE', name: 'Géorgie', difficulty: 120 },
-  { code: 'AM', name: 'Arménie', difficulty: 120 },
-  { code: 'AZ', name: 'Azerbaïdjan', difficulty: 120 },
+  { code: 'KW', name: 'Koweit', difficulty: 130 },
+  { code: 'BH', name: 'Bahrein', difficulty: 110 },
+  { code: 'YE', name: 'Yemen', difficulty: 100 },
+  { code: 'GE', name: 'Georgie', difficulty: 120 },
+  { code: 'AM', name: 'Armenie', difficulty: 120 },
+  { code: 'AZ', name: 'Azerbaidjan', difficulty: 120 },
   { code: 'KZ', name: 'Kazakhstan', difficulty: 110 },
-  { code: 'UZ', name: 'Ouzbékistan', difficulty: 80 },
-  { code: 'TM', name: 'Turkménistan', difficulty: 50 },
+  { code: 'UZ', name: 'Ouzbekistan', difficulty: 80 },
+  { code: 'TM', name: 'Turkmenistan', difficulty: 50 },
   { code: 'TJ', name: 'Tadjikistan', difficulty: 50 },
   { code: 'KG', name: 'Kirghizistan', difficulty: 60 },
   { code: 'ZA', name: 'Afrique du Sud', difficulty: 180 },
-  { code: 'NG', name: 'Nigéria', difficulty: 150 },
+  { code: 'NG', name: 'Nigeria', difficulty: 150 },
   { code: 'GH', name: 'Ghana', difficulty: 110 },
-  { code: 'CI', name: "Côte d'Ivoire", difficulty: 130 },
-  { code: 'SN', name: 'Sénégal', difficulty: 130 },
+  { code: 'CI', name: "Cote d'Ivoire", difficulty: 130 },
+  { code: 'SN', name: 'Senegal', difficulty: 130 },
   { code: 'CM', name: 'Cameroun', difficulty: 100 },
   { code: 'ML', name: 'Mali', difficulty: 80 },
   { code: 'BF', name: 'Burkina Faso', difficulty: 70 },
   { code: 'NE', name: 'Niger', difficulty: 60 },
   { code: 'TG', name: 'Togo', difficulty: 60 },
-  { code: 'BJ', name: 'Bénin', difficulty: 60 },
-  { code: 'GN', name: 'Guinée', difficulty: 70 },
-  { code: 'GW', name: 'Guinée-Bissau', difficulty: 40 },
-  { code: 'GQ', name: 'Guinée équatoriale', difficulty: 30 },
+  { code: 'BJ', name: 'Benin', difficulty: 60 },
+  { code: 'GN', name: 'Guinee', difficulty: 70 },
+  { code: 'GW', name: 'Guinee-Bissau', difficulty: 40 },
+  { code: 'GQ', name: 'Guinee equatoriale', difficulty: 30 },
   { code: 'KE', name: 'Kenya', difficulty: 120 },
-  { code: 'ET', name: 'Éthiopie', difficulty: 100 },
+  { code: 'ET', name: 'Ethiopie', difficulty: 100 },
   { code: 'UG', name: 'Ouganda', difficulty: 80 },
   { code: 'TZ', name: 'Tanzanie', difficulty: 80 },
   { code: 'RW', name: 'Rwanda', difficulty: 60 },
@@ -99,7 +112,7 @@ export const COUNTRIES = Object.freeze([
   { code: 'KM', name: 'Comores', difficulty: 20 },
   { code: 'SC', name: 'Seychelles', difficulty: 40 },
   { code: 'CV', name: 'Cap-Vert', difficulty: 70 },
-  { code: 'ST', name: 'Sao Tomé-et-Principe', difficulty: 20 },
+  { code: 'ST', name: 'Sao Tome-et-Principe', difficulty: 20 },
   { code: 'MG', name: 'Madagascar', difficulty: 90 },
   { code: 'SO', name: 'Somalie', difficulty: 70 },
   { code: 'SD', name: 'Soudan', difficulty: 90 },
@@ -107,27 +120,27 @@ export const COUNTRIES = Object.freeze([
   { code: 'LY', name: 'Libye', difficulty: 110 },
   { code: 'MR', name: 'Mauritanie', difficulty: 60 },
   { code: 'CA', name: 'Canada', difficulty: 200 },
-  { code: 'US', name: 'États-Unis', difficulty: 200 },
+  { code: 'US', name: 'Etats-Unis', difficulty: 200 },
   { code: 'MX', name: 'Mexique', difficulty: 190 },
   { code: 'CR', name: 'Costa Rica', difficulty: 110 },
   { code: 'CU', name: 'Cuba', difficulty: 150 },
   { code: 'PA', name: 'Panama', difficulty: 120 },
-  { code: 'DO', name: 'République dominicaine', difficulty: 150 },
-  { code: 'HT', name: 'Haïti', difficulty: 130 },
+  { code: 'DO', name: 'Republique dominicaine', difficulty: 150 },
+  { code: 'HT', name: 'Haiti', difficulty: 130 },
   { code: 'SV', name: 'Salvador', difficulty: 90 },
   { code: 'GT', name: 'Guatemala', difficulty: 100 },
   { code: 'HN', name: 'Honduras', difficulty: 90 },
   { code: 'NI', name: 'Nicaragua', difficulty: 90 },
   { code: 'BZ', name: 'Belize', difficulty: 60 },
-  { code: 'JM', name: 'Jamaïque', difficulty: 150 },
-  { code: 'TT', name: 'Trinité-et-Tobago', difficulty: 80 },
+  { code: 'JM', name: 'Jamaique', difficulty: 150 },
+  { code: 'TT', name: 'Trinite-et-Tobago', difficulty: 80 },
   { code: 'BB', name: 'Barbade', difficulty: 60 },
   { code: 'BS', name: 'Bahamas', difficulty: 140 },
-  { code: 'BR', name: 'Brésil', difficulty: 200 },
+  { code: 'BR', name: 'Bresil', difficulty: 200 },
   { code: 'AR', name: 'Argentine', difficulty: 180 },
   { code: 'CL', name: 'Chili', difficulty: 120 },
   { code: 'CO', name: 'Colombie', difficulty: 150 },
-  { code: 'PE', name: 'Pérou', difficulty: 130 },
+  { code: 'PE', name: 'Perou', difficulty: 130 },
   { code: 'VE', name: 'Venezuela', difficulty: 100 },
   { code: 'UY', name: 'Uruguay', difficulty: 150 },
   { code: 'PY', name: 'Paraguay', difficulty: 80 },
@@ -136,15 +149,15 @@ export const COUNTRIES = Object.freeze([
   { code: 'SR', name: 'Suriname', difficulty: 30 },
   { code: 'CN', name: 'Chine', difficulty: 200 },
   { code: 'JP', name: 'Japon', difficulty: 200 },
-  { code: 'KR', name: 'Corée du Sud', difficulty: 180 },
-  { code: 'TW', name: 'Taïwan', difficulty: 120 },
+  { code: 'KR', name: 'Coree du Sud', difficulty: 180 },
+  { code: 'TW', name: 'Taiwan', difficulty: 120 },
   { code: 'HK', name: 'Hong Kong', difficulty: 150 },
   { code: 'MO', name: 'Macao', difficulty: 100 },
   { code: 'SG', name: 'Singapour', difficulty: 170 },
-  { code: 'TH', name: 'Thaïlande', difficulty: 160 },
-  { code: 'VN', name: 'Viêt Nam', difficulty: 140 },
+  { code: 'TH', name: 'Thailande', difficulty: 160 },
+  { code: 'VN', name: 'Viet Nam', difficulty: 140 },
   { code: 'PH', name: 'Philippines', difficulty: 145 },
-  { code: 'ID', name: 'Indonésie', difficulty: 160 },
+  { code: 'ID', name: 'Indonesie', difficulty: 160 },
   { code: 'MY', name: 'Malaisie', difficulty: 130 },
   { code: 'KH', name: 'Cambodge', difficulty: 90 },
   { code: 'LA', name: 'Laos', difficulty: 70 },
@@ -154,16 +167,16 @@ export const COUNTRIES = Object.freeze([
   { code: 'IN', name: 'Inde', difficulty: 200 },
   { code: 'PK', name: 'Pakistan', difficulty: 150 },
   { code: 'BD', name: 'Bangladesh', difficulty: 140 },
-  { code: 'NP', name: 'Népal', difficulty: 120 },
+  { code: 'NP', name: 'Nepal', difficulty: 120 },
   { code: 'LK', name: 'Sri Lanka', difficulty: 120 },
   { code: 'AF', name: 'Afghanistan', difficulty: 150 },
   { code: 'MV', name: 'Maldives', difficulty: 80 },
   { code: 'BT', name: 'Bhoutan', difficulty: 60 },
   { code: 'AU', name: 'Australie', difficulty: 200 },
-  { code: 'NZ', name: 'Nouvelle-Zélande', difficulty: 170 },
+  { code: 'NZ', name: 'Nouvelle-Zelande', difficulty: 170 },
   { code: 'FJ', name: 'Fidji', difficulty: 90 },
-  { code: 'PG', name: 'Papouasie-Nouvelle-Guinée', difficulty: 70 },
-  { code: 'SB', name: 'Îles Salomon', difficulty: 40 },
+  { code: 'PG', name: 'Papouasie-Nouvelle-Guinee', difficulty: 70 },
+  { code: 'SB', name: 'Iles Salomon', difficulty: 40 },
   { code: 'VU', name: 'Vanuatu', difficulty: 40 },
   { code: 'WS', name: 'Samoa', difficulty: 40 },
   { code: 'TO', name: 'Tonga', difficulty: 40 },
@@ -171,14 +184,26 @@ export const COUNTRIES = Object.freeze([
   { code: 'KI', name: 'Kiribati', difficulty: 20 },
   { code: 'NR', name: 'Nauru', difficulty: 10 },
   { code: 'PW', name: 'Palaos', difficulty: 30 },
-  { code: 'MH', name: 'Îles Marshall', difficulty: 20 },
-  { code: 'FM', name: 'Micronésie', difficulty: 20 }
-]);
+  { code: 'MH', name: 'Iles Marshall', difficulty: 20 },
+  { code: 'FM', name: 'Micronesie', difficulty: 20 }
+];
 
-export function createCountriesService() {
-  return {
-    list() {
-      return COUNTRIES;
-    }
-  };
+async function importCountries() {
+  for (const c of COUNTRIES) {
+    const link = `https://flagcdn.com/w320/${c.code.toLowerCase()}.png`;
+    await db.collection('countrySettings').doc(c.code).set({
+      name: c.name,
+      difficulty: c.difficulty,
+      enabled: true,
+      link,
+      flagUrl: link,
+      flagThumbUrl: `https://flagcdn.com/w160/${c.code.toLowerCase()}.png`
+    });
+  }
+  console.log(`Import termine : ${COUNTRIES.length} pays ajoutes.`);
 }
+
+importCountries().catch((err) => {
+  console.error('Erreur pendant importCountries :', err);
+  process.exitCode = 1;
+});

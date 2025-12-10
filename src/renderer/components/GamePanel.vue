@@ -69,9 +69,14 @@
           <p class="message">
             {{ message }}
           </p>
-          <button v-if="!isFinished" id="next-btn" type="button" :disabled="!answered" @click="$emit('next')">
-            Question suivante
-          </button>
+          <div class="footer-actions">
+            <button v-if="!isFinished" id="next-btn" type="button" :disabled="!answered" @click="$emit('next')">
+              Question suivante
+            </button>
+            <button v-else class="ghost-btn" type="button" @click="$emit('end')">
+              Fin du quiz
+            </button>
+          </div>
         </footer>
 
         <NameForm

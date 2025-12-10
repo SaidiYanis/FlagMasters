@@ -13,7 +13,7 @@
         </header>
 
         <p v-if="scores.length === 0" class="no-scores">
-          Aucun score enregistr√©.
+          Aucun score enregistre©.
         </p>
 
         <ul v-else class="score-list">
@@ -22,22 +22,16 @@
             :key="item.name"
             :class="['score-item', podiumClass(idx)]"
           >
-            <span class="score-rank">
-              {{ idx + 1 }}
-            </span>
-
+            <div class="score-rank">{{ idx + 1 }}</div>
             <div class="score-info">
-              <span class="score-name">
-                {{ item.name }}
-              </span>
-              <span class="score-meta">
-                ({{ item.totalCorrect }}/{{ item.totalQuestions }} questions)
-              </span>
+              <div class="score-user">
+                <img v-if="item.photoURL" class="score-avatar" :src="item.photoURL" alt="avatar" />
+                <div class="score-name">{{ item.displayName || item.name || 'Joueur' }}</div>
+              </div>
             </div>
-
-            <span class="score-rate">
-              {{ item.successRate }}%
-            </span>
+            <div class="score-rate">
+              {{ item.successRate ?? item.totalCorrect ?? 0 }}%
+            </div>
           </li>
         </ul>
       </div>
@@ -59,3 +53,4 @@ function podiumClass(idx) {
   return '';
 }
 </script>
+

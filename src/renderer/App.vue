@@ -5,12 +5,14 @@
     <TopBar
       :logo="logo"
       :screen="screen"
+      :user="user"
       @back="backToMenu"
       @show-scores="showScores"
+      @logout="logout"
     />
 
     <main class="content">
-      <div class="card glass">
+      <div v-if="user" class="card glass">
         <transition name="fade-slide" mode="out-in">
           <MenuPanel
             v-if="screen === 'menu'"
@@ -38,19 +40,27 @@
             :flag-bg-style="flagBgStyle"
             :flag-bg-style-for="flagBgStyleForCurrent"
             :button-class="buttonClass"
-            :show-name-form="showNameForm"
-            :players="players"
-            :selected-player-name="selectedPlayerName"
-            :custom-player-name="customPlayerName"
+            :show-name-form="false"
+            :players="[]"
+            :selected-player-name="null"
+            :custom-player-name="''"
             :score="score"
             @answer="handleAnswer"
             @next="handleNext"
-            @save="saveAndReturnMenu"
-            @update:selected-name="(val) => (state.selectedPlayerName = val)"
-            @update:custom-name="(val) => (state.customPlayerName = val)"
+            @save="backToMenu"
+            @end="backToMenu"
+            @update:selected-name="() => {}"
+            @update:custom-name="() => {}"
             @flag-error="onFlagError"
           />
         </transition>
+      </div>
+      <div v-else class="card glass login-card">
+        <h2>Connexion requise</h2>
+        <p>Connecte-toi avec Google pour jouer et enregistrer tes scores.</p>
+        <button class="primary-btn" type="button" @click="login">
+          Se connecter avec Google
+        </button>
       </div>
     </main>
 
@@ -71,6 +81,7 @@ import MenuPanel from './components/MenuPanel.vue';
 import GamePanel from './components/GamePanel.vue';
 import ScoreModal from './components/ScoreModal.vue';
 import { loadInitialConfig, applyConfigToState } from './services/configService';
+import { loginGoogle as loginFirebase, logoutGoogle, subscribeAuth } from './services/authService';
 import { useSounds } from './composables/useSounds';
 import buttonSfxUrl from '../../resources/button.mp3';
 import goodSfxUrl from '../../resources/good.mp3';
@@ -106,7 +117,8 @@ const state = reactive({
     mode: 'country-to-flag',
     totalQuestions: 10
   },
-  screen: 'menu', // 'menu' | 'game'
+  user: null,
+  screen: 'menu',
   menuGameMode: 'country-to-flag',
   menuDifficulty: 'easy',
   menuQuestions: 10,
@@ -117,7 +129,7 @@ const state = reactive({
   questions: [],
   answered: false,
   selectedCode: null,
-  message: 'Choisis une réponse pour commencer.',
+  message: 'Choisis une reponse pour commencer.',
   flagLoadError: false,
   loadedConfig: null,
   scoreModal: false,
@@ -141,6 +153,7 @@ const {
   menuGameMode,
   menuDifficulty,
   menuQuestions,
+  user,
   scoreModal,
   players,
   selectedPlayerName,
@@ -154,7 +167,7 @@ const questionText = computed(() => {
   if (state.quizOptions.mode === 'country-to-flag') {
     return `Quel est le drapeau de ${state.currentQuestion.name} ?`;
   }
-  return `À quel pays appartient ce drapeau ?`;
+  return `A quel pays appartient ce drapeau ?`;
 });
 
 const flagUrl = computed(() => {
@@ -171,11 +184,11 @@ const sortedScores = computed(() => {
   );
 });
 
-function resetQuestionState(message = '') {
+function resetQuestionState(msg = '') {
   state.answered = false;
   state.selectedCode = null;
   state.flagLoadError = false;
-  state.message = message;
+  state.message = msg;
 }
 
 function resetQuiz() {
@@ -212,11 +225,10 @@ function handleAnswer(option) {
     state.message = 'Bravo, bonne reponse !';
     playGood();
   } else {
-    if (state.quizOptions.mode === 'country-to-flag') {
-      state.message = 'Mauvaise reponse.';
-    } else {
-      state.message = `Mauvaise reponse. La bonne reponse etait ${state.currentQuestion.name}.`;
-    }
+    state.message =
+      state.quizOptions.mode === 'country-to-flag'
+        ? 'Mauvaise reponse.'
+        : `Mauvaise reponse. La bonne reponse etait ${state.currentQuestion.name}.`;
     playBad();
   }
 
@@ -239,6 +251,10 @@ function onFlagError() {
 }
 
 function startGame() {
+  if (!state.user) {
+    state.message = 'Connecte-toi avec Google pour jouer.';
+    return;
+  }
   playClick();
   playStart();
   state.quizOptions.difficulty = state.menuDifficulty;
@@ -266,11 +282,7 @@ function handleNext() {
 }
 
 function startNameCapture() {
-  if (!players.value.length) {
-    state.selectedPlayerName = '__new__';
-  } else {
-    state.selectedPlayerName = players.value[0];
-  }
+  state.selectedPlayerName = players.value.length ? players.value[0] : '__new__';
   state.customPlayerName = '';
   state.showNameForm = true;
 }
@@ -286,7 +298,7 @@ async function saveAndReturnMenu() {
   if (window.api?.scores?.add) {
     const res = await window.api.scores.add(payload);
     if (res?.successRate !== undefined) {
-      state.message = `Moyenne de réussite pour ${name} : ${res.successRate}%`;
+      state.message = `Moyenne de reussite pour ${name} : ${res.successRate}%`;
     }
     if (!players.value.includes(name)) {
       state.players.push(name);
@@ -305,6 +317,7 @@ async function loadScores() {
 }
 
 function showScores() {
+  if (!state.user) return;
   playClick();
   loadScores().finally(() => {
     state.scoreModal = true;
@@ -333,17 +346,37 @@ async function fetchQuiz() {
 }
 
 async function loadCountries() {
+  if (!state.user) return;
   if (window.api?.countries?.list) {
-    const list = await window.api.countries.list();
-    if (Array.isArray(list) && list.length) {
-      state.countries = list;
-      return;
+    try {
+      const res = await window.api.countries.list();
+      const list = Array.isArray(res) ? res : res?.items;
+      console.log('[renderer] countries loaded', Array.isArray(list) ? list.length : 0);
+      if (Array.isArray(list) && list.length) {
+        state.countries = list;
+        return;
+      }
+      state.message = 'Aucun pays recu depuis Firestore.';
+    } catch (err) {
+      console.error('[renderer] countries load error', err);
+      state.message = 'Impossible de charger les pays (verifie Firestore).';
     }
   }
   state.countries = [];
 }
 
 onMounted(() => {
+  subscribeAuth((u) => {
+    state.user = u;
+    if (u?.uid) {
+      console.log('[renderer] user connected', u.uid);
+      state.screen = 'menu';
+      loadCountries();
+    } else {
+      console.log('[renderer] user signed out');
+      state.countries = [];
+    }
+  });
   Promise.all([
     loadInitialConfig(window.api?.config).then((cfg) => {
       state.loadedConfig = cfg;
@@ -354,7 +387,40 @@ onMounted(() => {
     loadScores();
   });
 });
+
+async function login() {
+  try {
+    console.log('[renderer] login click');
+    const res = await loginFirebase();
+    if (res?.uid) {
+      state.user = res;
+      state.screen = 'menu';
+      loadCountries();
+    } else {
+      state.message = 'Connexion Google non aboutie.';
+    }
+  } catch (err) {
+    console.error('[renderer] login error', err);
+    state.message = 'Connexion Google impossible.';
+  }
+}
+
+async function logout() {
+  try {
+    await logoutGoogle();
+  } catch (err) {
+    console.error('[renderer] logout error', err);
+  } finally {
+    state.user = null;
+    state.message = 'Connecte-toi avec Google pour jouer.';
+  }
+}
 </script>
+
+
+
+
+
 
 
 

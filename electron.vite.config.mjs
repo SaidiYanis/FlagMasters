@@ -16,6 +16,11 @@ export default defineConfig({
   preload: {
     input: {
       preload: resolve(__dirname, 'src/preload/preload.js')
+    },
+    vite: {
+      optimizeDeps: {
+        include: ['firebase/app', 'firebase/auth']
+      }
     }
   },
   renderer: {

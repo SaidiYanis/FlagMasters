@@ -1,4 +1,4 @@
-const { contextBridge, ipcRenderer } = require('electron');
+import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('api', {
   config: {
@@ -13,5 +13,12 @@ contextBridge.exposeInMainWorld('api', {
   scores: {
     add: (payload) => ipcRenderer.invoke('score:add', payload),
     list: () => ipcRenderer.invoke('score:list')
+  },
+  auth: {
+    setToken: (token) => ipcRenderer.invoke('auth:setToken', token),
+    clear: () => ipcRenderer.invoke('auth:clear'),
+    users: {
+      save: (profile) => ipcRenderer.invoke('users:save', profile)
+    }
   }
 });

@@ -1,4 +1,4 @@
-import { createCountriesService, COUNTRIES } from './countries.js';
+import { listCountries } from './firebaseCountries.js';
 
 const FLAG_CDN_BASE = 'https://flagcdn.com';
 
@@ -30,60 +30,65 @@ function flagUrlFor(country, kind = 'main') {
   return `${FLAG_CDN_BASE}/${size}/${lowerCode}.png`;
 }
 
-export function createQuizService() {
-  const countriesService = createCountriesService();
+function filteredCountries(list, difficulty) {
+  const level = DIFFICULTY_RANGES[difficulty];
+  if (!level || difficulty === 'mixed') return list;
+  const filtered = list.filter(
+    (c) => c.difficulty >= level.min && c.difficulty <= level.max
+  );
+  return filtered.length ? filtered : list;
+}
 
-  function filteredCountries(difficulty) {
-    const list = countriesService.list();
-    const level = DIFFICULTY_RANGES[difficulty];
-    if (!level || difficulty === 'mixed') return list;
-    const filtered = list.filter(
-      c => c.difficulty >= level.min && c.difficulty <= level.max
-    );
-    return filtered.length ? filtered : list;
-  }
-
-  function buildOptions(correct, pool) {
-    const wrongs = [];
-    const maxWrong = Math.min(
-      QUIZ_CONFIG.optionsPerQuestion - 1,
-      pool.length - 1
-    );
-    while (wrongs.length < maxWrong) {
-      const candidate = pool[Math.floor(Math.random() * pool.length)];
-      if (!wrongs.find(w => w.code === candidate.code) && candidate.code !== correct.code) {
-        wrongs.push(candidate);
-      }
+function buildOptions(correct, pool) {
+  const wrongs = [];
+  const maxWrong = Math.min(QUIZ_CONFIG.optionsPerQuestion - 1, pool.length - 1);
+  while (wrongs.length < maxWrong) {
+    const candidate = pool[Math.floor(Math.random() * pool.length)];
+    if (!wrongs.find((w) => w.code === candidate.code) && candidate.code !== correct.code) {
+      wrongs.push(candidate);
     }
-    return shuffle([correct, ...wrongs]);
   }
+  return shuffle([correct, ...wrongs]);
+}
 
-  function buildQuestionPool(list, total) {
-    const shuffled = shuffle(list);
-    const count = Math.min(total || QUIZ_CONFIG.baseTotalQuestions, shuffled.length);
-    return shuffled.slice(0, count);
-  }
+function buildQuestionPool(list, total) {
+  const shuffled = shuffle(list);
+  const count = Math.min(total || QUIZ_CONFIG.baseTotalQuestions, shuffled.length);
+  return shuffled.slice(0, count);
+}
 
-  function formatQuestion(country, gameMode) {
-    const text = gameMode === 'country-to-flag'
+function formatQuestion(country, gameMode) {
+  const text =
+    gameMode === 'country-to-flag'
       ? `Quel est le drapeau de ${country.name} ?`
-      : `À quel pays appartient ce drapeau ?`;
-    return {
-      code: country.code,
-      name: country.name,
-      questionText: text,
-      flagUrl: flagUrlFor(country, 'main')
-    };
-  }
+      : `A quel pays appartient ce drapeau ?`;
+  return {
+    code: country.code,
+    name: country.name,
+    questionText: text,
+    flagUrl: country.flagUrl || flagUrlFor(country, 'main')
+  };
+}
 
-  function generate({ mode = 'country-to-flag', difficulty = 'easy', totalQuestions = QUIZ_CONFIG.baseTotalQuestions }) {
-    const pool = filteredCountries(difficulty);
+export function createQuizService() {
+  async function generate({
+    mode = 'country-to-flag',
+    difficulty = 'easy',
+    totalQuestions = QUIZ_CONFIG.baseTotalQuestions
+  }) {
+    const all = await listCountries();
+    const normalized = (all || []).map((c) => ({
+      ...c,
+      flagUrl: c.flagUrl || flagUrlFor(c, 'main'),
+      flagThumbUrl: c.flagThumbUrl || flagUrlFor(c, 'answer')
+    }));
+    const pool = filteredCountries(normalized, difficulty);
     const questionsPool = buildQuestionPool(pool, totalQuestions);
-    const questions = questionsPool.map(country => {
-      const options = buildOptions(country, pool).map(opt => ({
+    const questions = questionsPool.map((country) => {
+      const options = buildOptions(country, pool).map((opt) => ({
         code: opt.code,
         name: opt.name,
-        flag: flagUrlFor(opt, 'answer')
+        flag: opt.flagThumbUrl || flagUrlFor(opt, 'answer')
       }));
       return {
         ...formatQuestion(country, mode),
@@ -100,4 +105,3 @@ export function createQuizService() {
 
   return { generate, flagUrlFor, filteredCountries, buildOptions, buildQuestionPool };
 }
-

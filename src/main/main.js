@@ -4,18 +4,17 @@ import fs from 'fs/promises';
 import { fileURLToPath } from 'url';
 import { createScoreService } from './services/scores.js';
 import { createConfigService } from './services/config.js';
-import { createCountriesService } from './services/countries.js';
 import { registerScoreIpc } from './ipc/scores.js';
 import { registerConfigIpc } from './ipc/config.js';
 import { registerCountriesIpc } from './ipc/countries.js';
 import { registerQuizIpc } from './ipc/quiz.js';
 import { createQuizService } from './services/quiz.js';
+import { registerAuthIpc } from './ipc/auth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const scoreService = createScoreService(app);
 const configService = createConfigService(app);
-const countriesService = createCountriesService();
 const quizService = createQuizService();
 
 function createWindow() {
@@ -58,8 +57,9 @@ async function readConfigFile() {
 function registerIpcHandlers() {
   registerConfigIpc(ipcMain, configService);
   registerScoreIpc(ipcMain, scoreService);
-  registerCountriesIpc(ipcMain, countriesService);
+  registerCountriesIpc();
   registerQuizIpc(ipcMain, quizService);
+  registerAuthIpc();
 }
 
 app.whenReady().then(() => {
