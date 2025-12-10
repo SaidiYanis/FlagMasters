@@ -1,44 +1,40 @@
 import { describe, expect, it, vi, beforeEach } from 'vitest';
 
-vi.mock('firebase/app', () => {
-  return {
-    initializeApp: vi.fn().mockReturnValue({})
-  };
-});
+const mockDocs = [{ id: 'FR', data: () => ({ name: 'France', difficulty: 200 }) }];
 
-const mockDocs = [
-  { id: 'FR', data: () => ({ name: 'France', difficulty: 200 }) }
-];
-
-const getDocsMock = vi.fn();
 const collectionMock = vi.fn();
+const getMock = vi.fn();
 
-vi.mock('firebase/firestore', () => {
-  return {
-    getFirestore: vi.fn(),
-    collection: (...args) => collectionMock(...args),
-    getDocs: (...args) => getDocsMock(...args),
-    query: vi.fn(),
-    where: vi.fn()
-  };
-});
+vi.mock('../auth.js', () => ({
+  getAdminDb: vi.fn(async () => ({
+    collection: () => ({
+      get: getMock
+    })
+  })),
+  getCurrentUid: () => 'uid-test'
+}));
 
 import { listCountries } from '../firebaseCountries.js';
 
 describe('firebaseCountries', () => {
   beforeEach(() => {
-    getDocsMock.mockResolvedValue({
-      docs: mockDocs
-    });
-    collectionMock.mockReturnValue('collectionRef');
+    collectionMock.mockReturnValue({ get: getMock });
+    getMock.mockResolvedValue({ docs: mockDocs });
   });
 
   it('returns countries from firestore', async () => {
     const res = await listCountries();
-    expect(collectionMock).toHaveBeenCalled();
-    expect(getDocsMock).toHaveBeenCalled();
+    expect(getMock).toHaveBeenCalled();
     expect(res).toEqual([
-      { code: 'FR', name: 'France', difficulty: 200, link: expect.any(String), flagUrl: expect.any(String), flagThumbUrl: expect.any(String) }
+      {
+        code: 'FR',
+        name: 'France',
+        difficulty: 200,
+        link: expect.any(String),
+        flagUrl: expect.any(String),
+        flagThumbUrl: expect.any(String),
+        enabled: true
+      }
     ]);
   });
 });

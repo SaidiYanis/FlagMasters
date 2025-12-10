@@ -1,36 +1,41 @@
-import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { mkdtemp, rm } from 'fs/promises';
-import os from 'os';
-import path from 'path';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { createScoreService } from '../scores.js';
 
-let mockApp;
-let tmpDir;
+const store = new Map();
 
-beforeEach(async () => {
-  tmpDir = await mkdtemp(path.join(os.tmpdir(), 'scores-test-'));
-  mockApp = { getPath: () => tmpDir };
-});
+const docRef = {
+  get: vi.fn(async () => {
+    const data = store.get('uid') || null;
+    return { exists: !!data, data: () => data || {} };
+  }),
+  set: vi.fn(async (val) => {
+    store.set('uid', { ...(store.get('uid') || {}), ...val });
+  })
+};
 
-afterEach(async () => {
-  if (tmpDir) {
-    await rm(tmpDir, { recursive: true, force: true });
-  }
-});
+vi.mock('../auth.js', () => ({
+  getCurrentUid: () => 'uid',
+  getAdminDb: async () => ({
+    collection: () => ({
+      doc: () => docRef
+    })
+  })
+}));
 
 describe('score service validation', () => {
   it('rejects invalid payloads', async () => {
-    const svc = createScoreService(mockApp);
+    const svc = createScoreService();
     await expect(svc.add(null)).rejects.toThrow();
     await expect(svc.add({ name: '', correct: 1, total: 0 })).rejects.toThrow();
     await expect(svc.add({ name: 'A', correct: 5, total: 3 })).rejects.toThrow();
   });
 
   it('aggregates scores and computes success rate', async () => {
-    const svc = createScoreService(mockApp);
-    const r1 = await svc.add({ name: 'Alice', correct: 7, total: 10 });
+    store.clear();
+    const svc = createScoreService();
+    const r1 = await svc.add({ correct: 7, total: 10, displayName: 'Alice' });
     expect(r1.successRate).toBe(70);
-    const r2 = await svc.add({ name: 'Alice', correct: 3, total: 5 });
+    const r2 = await svc.add({ correct: 3, total: 5, displayName: 'Alice' });
     expect(r2.successRate).toBe(67); // 10/15 ~ 66.6
   });
 });

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from 'vitest';
 
-const invokeMock = vi.fn();
+// Hoisted mock to avoid TDZ issues with preload import
+const invokeMock = vi.hoisted(() => vi.fn());
 
 vi.mock('electron', () => ({
   ipcRenderer: { invoke: invokeMock },
@@ -10,6 +11,9 @@ vi.mock('electron', () => ({
     }
   }
 }));
+
+// Fournit un alias window dans l'environnement node
+globalThis.window = globalThis;
 
 import '../preload.js';
 

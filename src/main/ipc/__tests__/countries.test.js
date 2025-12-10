@@ -7,15 +7,13 @@ vi.mock('../../services/firebaseCountries.js', () => ({
 }));
 
 const handles = {};
-const ipcMainMock = {
+const ipcMainMock = vi.hoisted(() => ({
   handle: vi.fn((channel, cb) => {
     handles[channel] = cb;
   })
-};
-
-vi.mock('electron', () => ({
-  ipcMain: ipcMainMock
 }));
+
+vi.mock('electron', () => ({ ipcMain: ipcMainMock }));
 
 import { registerCountriesIpc } from '../countries.js';
 
