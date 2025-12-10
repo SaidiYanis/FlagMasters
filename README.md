@@ -50,26 +50,32 @@ Le projet utilise **Electron** pour le desktop, **Vite** pour le bundling rapide
 
 ```
 FlagMasters/
-├── build/                     # Icônes et fichiers packaging
-├── dist/                      # Build final (setup exe + unpacked)
-├── out/                       # Build Vite/Electron intermédiaire
-├── resources/                 # Ressources diverses
+├── .github/workflows/ci.yml
+├── build/                      # Icônes / packaging
+├── dist/                       # Builds electron-builder
+├── out/                        # Builds electron-vite
+├── resources/                  # Assets (logo, sons…)
 ├── src/
-│   ├── main/                  # Processus principal Electron
+│   ├── main/                   # Processus principal
+│   │   ├── ipc/                # Handlers IPC
+│   │   ├── services/
+│   │   │   ├── auth.js         # Vérif tokens Firebase Admin
+│   │   │   ├── firebaseCountries.js
+│   │   │   ├── quiz.js         # Génération quiz (Firestore)
+│   │   │   ├── scores.js       # Leaderboard Firestore (users)
+│   │   │   └── config.js
 │   │   └── main.js
-│   ├── preload/               # Bridge sécurisé
+│   ├── preload/                # Bridge sécurisé
 │   │   └── preload.js
-│   └── renderer/              # Code frontend Vue + Vite
-│       ├── index.html
-│       ├── app.js
-│       ├── src/
-│       │   ├── App.vue
-│       │   ├── countries.js
-│       │   ├── quizService.js
-│       │   └── main.js
-│       └── assets/
-├── electron-builder.yml
+│   └── renderer/               # UI Vue 3
+│       ├── App.vue
+│       ├── main.js
+│       ├── components/         # TopBar, MenuPanel, GamePanel, ScoreModal…
+│       ├── services/           # authService, quizService, configService
+│       └── composables/        # useFlags, useSounds…
+├── tmp/                        # Fichiers de travail (scores.json…)
 ├── electron.vite.config.mjs
+├── electron-builder.yml
 ├── package.json
 └── README.md
 ```
