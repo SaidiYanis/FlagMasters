@@ -2,7 +2,7 @@
 **Electron + Vite + Vue 3**
 
 FlagMasters est une application moderne permettant d’apprendre les drapeaux du monde via un quiz interactif.  
-Le projet utilise **Electron** pour le desktop, **Vite** pour le bundling rapide, et **Vue 3** pour l’interface front.
+Le projet utilise **Electron** pour le desktop, **Vite** pour le bundling rapide, **Vue 3** pour l’interface front, et **Firebase** (Auth + Firestore) pour l’authentification Google et les données (pays, scores).
 
 ---
 
@@ -13,6 +13,7 @@ Le projet utilise **Electron** pour le desktop, **Vite** pour le bundling rapide
 - **Trouver le drapeau** : 1 nom → 4 drapeaux
 - Indicateur immédiat (correct / incorrect)
 - Score en temps réel
+- Auth Google obligatoire pour lancer une partie et enregistrer les scores
 
 ### 🎚️ Niveaux de difficulté
 - **Facile** (pays très connus)
@@ -21,10 +22,11 @@ Le projet utilise **Electron** pour le desktop, **Vite** pour le bundling rapide
 - **Mixte** (tous pays confondus)
 
 ### 🌍 Données des pays
-- +175 pays
+- +175 pays depuis Firestore (`countrySettings`)
 - Codes ISO (compatible FlagCDN)
 - Niveau de difficulté 0 → 200
 - Drapeaux haute qualité via FlagCDN
+- Filtrage `enabled` côté back pour exclure les pays désactivés
 
 ### 🎨 Interface utilisateur
 - Design sombre moderne
@@ -33,11 +35,11 @@ Le projet utilise **Electron** pour le desktop, **Vite** pour le bundling rapide
 - Navigation simple
 
 ### 🔒 Architecture sécurisée
-- `contextIsolation: true`
-- `nodeIntegration: false`
-- Preload IPC sécurisé
-- CSP stricte
-- Renderer isolé
+- `contextIsolation: true`, `nodeIntegration: false`, sandbox activé
+- Preload IPC minimal (pas de Node exposé au renderer)
+- CSP stricte (FlagCDN + Google APIs + googleusercontent)
+- Auth Google Web SDK côté renderer ; vérification du token via Firebase Admin côté main
+- Firestore accessible via services côté main (pas d’accès direct Node depuis le renderer)
 
 ### 🏗️ Build & packaging
 - Installateur `.exe` via `electron-builder`
@@ -73,7 +75,7 @@ FlagMasters/
 │       ├── components/         # TopBar, MenuPanel, GamePanel, ScoreModal…
 │       ├── services/           # authService, quizService, configService
 │       └── composables/        # useFlags, useSounds…
-├── tmp/                        # Fichiers de travail (scores.json…)
+├── tmp/                        # Fichiers de travail (peut être vide/ignoré)
 ├── electron.vite.config.mjs
 ├── electron-builder.yml
 ├── package.json
@@ -87,13 +89,21 @@ FlagMasters/
 ### 🔧 Prérequis
 - Node.js **18+** (recommandé : **20+**)
 - npm **8+**
+- Un projet Firebase configuré (Auth + Firestore) + un compte de service Firebase Admin (FM-serviceAccountKey.json)
 
 ### ▶️ Lancer l’application en mode dev
 
-```
-npm install
-npm run dev
-```
+1. Crée un fichier `.env.local` (non versionné) :
+   ```
+   VITE_FIREBASE_API_KEY=ta_cle_web_firebase
+   ```
+   (La clé Web Firebase n’est pas secrète, mais on évite de la versionner.)
+
+2. Installe et démarre :
+   ```
+   npm install
+   npm run dev
+   ```
 
 Electron démarre en utilisant le serveur Vite local.
 
@@ -111,6 +121,15 @@ Résultats :
 
 ---
 
+## ✅ Tests
+
+Sous Windows, utilise un seul worker pour éviter les erreurs `EPERM` :
+```
+npx vitest run --pool=threads --poolOptions.threads.singleThread=true
+```
+
+---
+
 ## 🔐 Sécurité
 
 Le projet suit les bonnes pratiques d’Electron :
@@ -120,6 +139,8 @@ Le projet suit les bonnes pratiques d’Electron :
 - sandbox + isolation du contexte  
 - stricte séparation Main / Preload / Renderer  
 - CSP restrictive
+- Vérification des tokens côté main via Firebase Admin (services `auth.js`)
+- Accès Firestore pour les pays et scores via le process main
 
 ---
 
