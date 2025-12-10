@@ -1,6 +1,6 @@
-import { defineConfig } from 'electron-vite';
-import { resolve } from 'path';
-import vue from '@vitejs/plugin-vue';
+import { defineConfig } from 'electron-vite'
+import { resolve } from 'path'
+import vue from '@vitejs/plugin-vue'
 
 export default defineConfig({
   main: {
@@ -37,4 +37,4 @@ export default defineConfig({
       }
     }
   }
-});
+})

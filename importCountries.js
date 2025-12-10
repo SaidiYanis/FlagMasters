@@ -1,14 +1,14 @@
-import { readFile } from 'fs/promises';
-import { initializeApp, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+import { readFile } from 'fs/promises'
+import { initializeApp, cert } from 'firebase-admin/app'
+import { getFirestore } from 'firebase-admin/firestore'
 
 // Charge la clé de service admin (assure-toi que FM-serviceAccountKey.json est ignoré par git)
 const serviceAccount = JSON.parse(
   await readFile(new URL('./FM-serviceAccountKey.json', import.meta.url), 'utf-8')
-);
+)
 
-initializeApp({ credential: cert(serviceAccount) });
-const db = getFirestore();
+initializeApp({ credential: cert(serviceAccount) })
+const db = getFirestore()
 
 // Liste des pays avec code ISO, nom et score de difficulte
 const COUNTRIES = [
@@ -186,24 +186,27 @@ const COUNTRIES = [
   { code: 'PW', name: 'Palaos', difficulty: 30 },
   { code: 'MH', name: 'Iles Marshall', difficulty: 20 },
   { code: 'FM', name: 'Micronesie', difficulty: 20 }
-];
+]
 
 async function importCountries() {
   for (const c of COUNTRIES) {
-    const link = `https://flagcdn.com/w320/${c.code.toLowerCase()}.png`;
-    await db.collection('countrySettings').doc(c.code).set({
-      name: c.name,
-      difficulty: c.difficulty,
-      enabled: true,
-      link,
-      flagUrl: link,
-      flagThumbUrl: `https://flagcdn.com/w160/${c.code.toLowerCase()}.png`
-    });
+    const link = `https://flagcdn.com/w320/${c.code.toLowerCase()}.png`
+    await db
+      .collection('countrySettings')
+      .doc(c.code)
+      .set({
+        name: c.name,
+        difficulty: c.difficulty,
+        enabled: true,
+        link,
+        flagUrl: link,
+        flagThumbUrl: `https://flagcdn.com/w160/${c.code.toLowerCase()}.png`
+      })
   }
-  console.log(`Import termine : ${COUNTRIES.length} pays ajoutes.`);
+  console.log(`Import termine : ${COUNTRIES.length} pays ajoutes.`)
 }
 
 importCountries().catch((err) => {
-  console.error('Erreur pendant importCountries :', err);
-  process.exitCode = 1;
-});
+  console.error('Erreur pendant importCountries :', err)
+  process.exitCode = 1
+})

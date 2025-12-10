@@ -1,4 +1,4 @@
-import { contextBridge, ipcRenderer } from 'electron';
+import { contextBridge, ipcRenderer } from 'electron'
 
 contextBridge.exposeInMainWorld('api', {
   config: {
@@ -21,4 +21,4 @@ contextBridge.exposeInMainWorld('api', {
       save: (profile) => ipcRenderer.invoke('users:save', profile)
     }
   }
-});
+})
