@@ -21,7 +21,7 @@ Le projet utilise **Electron** pour le desktop, **Vite** pour le bundling rapide
 - **Mixte** (tous pays confondus)
 
 ### 🌍 Données des pays
-- +80 pays
+- +175 pays
 - Codes ISO (compatible FlagCDN)
 - Niveau de difficulté 0 → 200
 - Drapeaux haute qualité via FlagCDN
