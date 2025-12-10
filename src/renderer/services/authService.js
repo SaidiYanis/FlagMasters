@@ -8,7 +8,7 @@ import {
 } from 'firebase/auth';
 
 const firebaseConfig = {
-  apiKey: 'AIzaSyD3GQ-AtLOvCsfBIEj1tazn4pq_Jjxin7I',
+  apiKey: 'AIzaSyANc0iQA97lMHuRMkgUXol7pdmQ7U19FwI',
   authDomain: 'flag-masters-geo.firebaseapp.com',
   projectId: 'flag-masters-geo',
   storageBucket: 'flag-masters-geo.firebasestorage.app',
