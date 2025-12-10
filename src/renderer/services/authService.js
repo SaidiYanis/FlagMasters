@@ -20,6 +20,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const provider = new GoogleAuthProvider();
+// Force the account chooser even si un compte est déjà connu
+provider.setCustomParameters({ prompt: 'select_account' });
 
 export async function loginGoogle() {
   const result = await signInWithPopup(auth, provider);
@@ -49,6 +51,8 @@ export function currentUser() {
 export async function logoutGoogle() {
   await signOut(auth);
   await window.api?.auth?.clear?.();
+  // Efface toute session résiduelle pour éviter une reconnexion silencieuse
+  // (Google forcera le sélecteur grâce au prompt=select_account plus haut)
 }
 
 export function subscribeAuth(cb) {
