@@ -1,24 +1,10 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore, collection, getDocs, query, where } from 'firebase/firestore';
-import { getCurrentUid } from './auth.js';
-
-const firebaseConfig = {
-  apiKey: 'AIzaSyD3GQ-AtLOvCsfBIEj1tazn4pq_Jjxin7I',
-  authDomain: 'flag-masters-geo.firebaseapp.com',
-  projectId: 'flag-masters-geo',
-  storageBucket: 'flag-masters-geo.firebasestorage.app',
-  messagingSenderId: '729351393002',
-  appId: '1:729351393002:web:72a2caffaaadda21b09193',
-  measurementId: 'G-86195LTSNQ'
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getFirestore(app);
+import { getAdminDb, getCurrentUid } from './auth.js';
 
 export async function listCountries() {
   ensureAuthenticated();
+  const db = await getAdminDb();
   console.log('[countries] fetching all from Firestore');
-  const snap = await getDocs(collection(db, 'countrySettings'));
+  const snap = await db.collection('countrySettings').get();
   const data = snap.docs.map((doc) => normalize(doc)).filter((c) => c.enabled !== false);
   console.log('[countries] fetched', data.length, 'items (enabled only)');
   return data;
@@ -26,13 +12,13 @@ export async function listCountries() {
 
 export async function listCountriesByDifficulty(min, max) {
   ensureAuthenticated();
+  const db = await getAdminDb();
   console.log('[countries] fetching by difficulty', { min, max });
-  const q = query(
-    collection(db, 'countrySettings'),
-    where('difficulty', '>=', min),
-    where('difficulty', '<=', max)
-  );
-  const snap = await getDocs(q);
+  const snap = await db
+    .collection('countrySettings')
+    .where('difficulty', '>=', min)
+    .where('difficulty', '<=', max)
+    .get();
   const data = snap.docs.map((doc) => normalize(doc)).filter((c) => c.enabled !== false);
   console.log('[countries] fetched', data.length, 'items (filtered + enabled only)');
   return data;
@@ -62,7 +48,6 @@ function normalize(doc) {
 function ensureAuthenticated() {
   const uid = getCurrentUid();
   if (!uid) {
-    // Retourne un tableau vide au lieu d'exploser; le renderer gèrera le message
     throw Object.assign(new Error('User not authenticated'), { code: 'unauthenticated' });
   }
 }

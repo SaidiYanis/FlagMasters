@@ -1,4 +1,5 @@
 import { listCountries } from './firebaseCountries.js';
+import { getCurrentUid } from './auth.js';
 
 const FLAG_CDN_BASE = 'https://flagcdn.com';
 
@@ -77,6 +78,9 @@ export function createQuizService() {
     difficulty = 'easy',
     totalQuestions = QUIZ_CONFIG.baseTotalQuestions
   }) {
+    if (!getCurrentUid()) {
+      throw Object.assign(new Error('User not authenticated'), { code: 'unauthenticated' });
+    }
     const all = await listCountries();
     const normalized = (all || []).map((c) => ({
       ...c,

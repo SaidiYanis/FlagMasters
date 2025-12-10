@@ -327,7 +327,10 @@ async function fetchQuiz() {
 }
 
 async function loadCountries() {
-  if (!state.user) return;
+  if (!state.user) {
+    state.countries = [];
+    return;
+  }
   if (window.api?.countries?.list) {
     try {
       const res = await window.api.countries.list();
