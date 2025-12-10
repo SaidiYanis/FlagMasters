@@ -23,6 +23,7 @@ function createWindow() {
     width: 1000,
     height: 700,
     backgroundColor: '#020617',
+    icon: path.resolve(__dirname, '../../resources/logo.png'),
     webPreferences: {
       preload: path.join(__dirname, '../preload/preload.js'),
       contextIsolation: true,

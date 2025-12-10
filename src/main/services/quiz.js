@@ -1,4 +1,4 @@
-import { createCountriesService, COUNTRIES } from '../countries.js';
+import { createCountriesService, COUNTRIES } from './countries.js';
 
 const FLAG_CDN_BASE = 'https://flagcdn.com';
 
@@ -100,3 +100,4 @@ export function createQuizService() {
 
   return { generate, flagUrlFor, filteredCountries, buildOptions, buildQuestionPool };
 }
+

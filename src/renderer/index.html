@@ -2,14 +2,29 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <title>Quiz des drapeaux</title>
-    <meta http-equiv="Content-Security-Policy"
-          content="
-            default-src 'self';
-            script-src 'self';
-            img-src 'self' https://flagcdn.com data:;
-            style-src 'self' 'unsafe-inline';
-          ">
+    <title>Flag Masters – Quiz des drapeaux</title>
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+
+    <!--
+      Neue Montreal n’est pas servi en ligne ici.
+      Si tu as la police installée sur ta machine, le navigateur l’utilisera
+      grâce au font-family défini dans App.vue.
+    -->
+
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+        default-src 'self';
+        script-src 'self';
+        img-src 'self' https://flagcdn.com data:;
+        style-src 'self' 'unsafe-inline';
+        connect-src 'self';
+        font-src 'self' data:;
+      "
+    />
   </head>
   <body>
     <div id="app"></div>
