@@ -19,8 +19,8 @@ export async function listCountries() {
   ensureAuthenticated();
   console.log('[countries] fetching all from Firestore');
   const snap = await getDocs(collection(db, 'countrySettings'));
-  const data = snap.docs.map((doc) => normalize(doc));
-  console.log('[countries] fetched', data.length, 'items');
+  const data = snap.docs.map((doc) => normalize(doc)).filter((c) => c.enabled !== false);
+  console.log('[countries] fetched', data.length, 'items (enabled only)');
   return data;
 }
 
@@ -33,8 +33,8 @@ export async function listCountriesByDifficulty(min, max) {
     where('difficulty', '<=', max)
   );
   const snap = await getDocs(q);
-  const data = snap.docs.map((doc) => normalize(doc));
-  console.log('[countries] fetched', data.length, 'items (filtered)');
+  const data = snap.docs.map((doc) => normalize(doc)).filter((c) => c.enabled !== false);
+  console.log('[countries] fetched', data.length, 'items (filtered + enabled only)');
   return data;
 }
 
@@ -45,12 +45,14 @@ function normalize(doc) {
   const flagUrl = data.flagUrl || mainLink;
   const flagThumbUrl =
     data.flagThumbUrl || `https://flagcdn.com/w160/${code.toLowerCase()}.png`;
+  const enabled = data.enabled !== false;
   return {
     code,
     ...data,
     link: mainLink,
     flagUrl,
-    flagThumbUrl
+    flagThumbUrl,
+    enabled
   };
 }
 

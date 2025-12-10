@@ -40,17 +40,10 @@
             :flag-bg-style="flagBgStyle"
             :flag-bg-style-for="flagBgStyleForCurrent"
             :button-class="buttonClass"
-            :show-name-form="false"
-            :players="[]"
-            :selected-player-name="null"
-            :custom-player-name="''"
             :score="score"
             @answer="handleAnswer"
             @next="handleNext"
-            @save="backToMenu"
             @end="backToMenu"
-            @update:selected-name="() => {}"
-            @update:custom-name="() => {}"
             @flag-error="onFlagError"
           />
         </transition>
@@ -118,6 +111,7 @@ const state = reactive({
     totalQuestions: 10
   },
   user: null,
+  countries: [],
   screen: 'menu',
   menuGameMode: 'country-to-flag',
   menuDifficulty: 'easy',
@@ -129,15 +123,11 @@ const state = reactive({
   questions: [],
   answered: false,
   selectedCode: null,
-  message: 'Choisis une reponse pour commencer.',
+  message: 'Choisis une réponse pour commencer.',
   flagLoadError: false,
   loadedConfig: null,
   scoreModal: false,
-  players: [],
-  scores: [],
-  selectedPlayerName: null,
-  customPlayerName: '',
-  showNameForm: false
+  scores: []
 });
 
 const {
@@ -155,19 +145,14 @@ const {
   menuQuestions,
   user,
   scoreModal,
-  players,
-  selectedPlayerName,
-  customPlayerName,
-  scores,
-  showNameForm
+  scores
 } = toRefs(state);
 
 const questionText = computed(() => {
   if (!state.currentQuestion) return '';
-  if (state.quizOptions.mode === 'country-to-flag') {
-    return `Quel est le drapeau de ${state.currentQuestion.name} ?`;
-  }
-  return `A quel pays appartient ce drapeau ?`;
+  return state.quizOptions.mode === 'country-to-flag'
+    ? `Quel est le drapeau de ${state.currentQuestion.name} ?`
+    : `À quel pays appartient ce drapeau ?`;
 });
 
 const flagUrl = computed(() => {
@@ -175,7 +160,7 @@ const flagUrl = computed(() => {
   return state.currentQuestion.flagUrl;
 });
 
-const isFinished = computed(() => state.questionIndex >= state.totalQuestions);
+const isFinished = computed(() => state.questionIndex >= state.totalQuestions && state.answered);
 const flagBgStyle = computed(() => flagBgStyleForCurrent(state.currentQuestion));
 const sortedScores = computed(() => {
   const arr = scores.value || [];
@@ -196,7 +181,7 @@ function resetQuiz() {
   state.questionIndex = 0;
   state.currentQuestion = null;
   state.questions = [];
-  resetQuestionState('Choisis une reponse pour commencer.');
+  resetQuestionState('Choisis une réponse pour commencer.');
 }
 
 function flagBgStyleForCurrent(country) {
@@ -206,35 +191,56 @@ function flagBgStyleForCurrent(country) {
 }
 
 function nextQuestion() {
+  if (!state.questions.length || state.questionIndex >= state.questions.length) {
+    state.message = 'Fin du quiz.';
+    return;
+  }
   resetQuestionState('');
-  const index = state.questionIndex;
-  const q = state.questions[index];
+  const q = state.questions[state.questionIndex];
   state.currentQuestion = q;
-  state.questionIndex++;
+  state.questionIndex += 1;
 }
 
-function handleAnswer(option) {
+async function recordScoreIncrement(isCorrect) {
+  if (!state.user || !window.api?.scores?.add) return;
+  const payload = {
+    correct: isCorrect ? 1 : 0,
+    total: 1,
+    displayName: state.user.displayName || 'Joueur',
+    photoURL: state.user.photoURL || '',
+    email: state.user.email || ''
+  };
+  try {
+    await window.api.scores.add(payload);
+  } catch (err) {
+    console.warn('[renderer] score sync failed', err);
+  }
+}
+
+async function handleAnswer(option) {
   if (state.answered || !state.currentQuestion) return;
 
   playClick();
   state.answered = true;
   state.selectedCode = option.code;
 
-  if (option.code === state.currentQuestion.code) {
-    state.score++;
-    state.message = 'Bravo, bonne reponse !';
+  const isCorrect = option.code === state.currentQuestion.code;
+  if (isCorrect) {
+    state.score += 1;
+    state.message = 'Bravo, bonne réponse !';
     playGood();
   } else {
     state.message =
       state.quizOptions.mode === 'country-to-flag'
-        ? 'Mauvaise reponse.'
-        : `Mauvaise reponse. La bonne reponse etait ${state.currentQuestion.name}.`;
+        ? 'Mauvaise réponse.'
+        : `Mauvaise réponse. La bonne réponse était ${state.currentQuestion.name}.`;
     playBad();
   }
 
+  await recordScoreIncrement(isCorrect);
+
   if (isFinished.value) {
-    state.message += `  Quiz termine ! Score final : ${state.score} / ${state.totalQuestions}`;
-    startNameCapture();
+    state.message += `  Quiz terminé ! Score final : ${state.score} / ${state.totalQuestions}`;
   }
 }
 
@@ -273,7 +279,6 @@ function backToMenu() {
   state.questionIndex = 0;
   state.score = 0;
   state.answered = false;
-  state.showNameForm = false;
 }
 
 function handleNext() {
@@ -281,39 +286,10 @@ function handleNext() {
   nextQuestion();
 }
 
-function startNameCapture() {
-  state.selectedPlayerName = players.value.length ? players.value[0] : '__new__';
-  state.customPlayerName = '';
-  state.showNameForm = true;
-}
-
-async function saveAndReturnMenu() {
-  playClick();
-  const chosen =
-    state.selectedPlayerName === '__new__'
-      ? (state.customPlayerName || '').trim()
-      : state.selectedPlayerName;
-  const name = chosen || 'Anonyme';
-  const payload = { name, correct: state.score, total: state.totalQuestions };
-  if (window.api?.scores?.add) {
-    const res = await window.api.scores.add(payload);
-    if (res?.successRate !== undefined) {
-      state.message = `Moyenne de reussite pour ${name} : ${res.successRate}%`;
-    }
-    if (!players.value.includes(name)) {
-      state.players.push(name);
-    }
-    loadScores();
-  }
-  state.showNameForm = false;
-  backToMenu();
-}
-
 async function loadScores() {
   if (!window.api?.scores?.list) return;
   const list = await window.api.scores.list();
   state.scores = Array.isArray(list) ? list : [];
-  state.players = state.scores.map((s) => s.name);
 }
 
 function showScores() {
@@ -335,13 +311,18 @@ async function fetchQuiz() {
     difficulty: state.quizOptions.difficulty,
     totalQuestions: state.quizOptions.totalQuestions
   };
-  const res = await window.api.quiz.generate(payload);
-  state.questions = Array.isArray(res?.questions) ? res.questions : [];
-  state.totalQuestions = res?.totalQuestions || state.questions.length;
-  if (state.totalQuestions > 0) {
-    nextQuestion();
-  } else {
-    state.message = 'Aucun pays disponible pour le quiz.';
+  try {
+    const res = await window.api.quiz.generate(payload);
+    state.questions = Array.isArray(res?.questions) ? res.questions : [];
+    state.totalQuestions = res?.totalQuestions || state.questions.length;
+    if (state.totalQuestions > 0) {
+      nextQuestion();
+    } else {
+      state.message = 'Aucun pays disponible pour le quiz.';
+    }
+  } catch (err) {
+    console.error('[renderer] quiz generation failed', err);
+    state.message = 'Impossible de générer le quiz.';
   }
 }
 
@@ -356,10 +337,10 @@ async function loadCountries() {
         state.countries = list;
         return;
       }
-      state.message = 'Aucun pays recu depuis Firestore.';
+      state.message = 'Aucun pays reçu depuis Firestore.';
     } catch (err) {
       console.error('[renderer] countries load error', err);
-      state.message = 'Impossible de charger les pays (verifie Firestore).';
+      state.message = 'Impossible de charger les pays (vérifie Firestore).';
     }
   }
   state.countries = [];
@@ -372,20 +353,23 @@ onMounted(() => {
       console.log('[renderer] user connected', u.uid);
       state.screen = 'menu';
       loadCountries();
+      loadScores();
     } else {
       console.log('[renderer] user signed out');
       state.countries = [];
+      state.scores = [];
     }
   });
-  Promise.all([
-    loadInitialConfig(window.api?.config).then((cfg) => {
+
+  loadInitialConfig(window.api?.config)
+    .then((cfg) => {
       state.loadedConfig = cfg;
       applyConfigToState(cfg, state, DIFFICULTY_RANGES);
-    }),
-    loadCountries()
-  ]).finally(() => {
-    loadScores();
-  });
+    })
+    .catch(() => {})
+    .finally(() => {
+      if (state.user) loadCountries();
+    });
 });
 
 async function login() {
@@ -396,6 +380,7 @@ async function login() {
       state.user = res;
       state.screen = 'menu';
       loadCountries();
+      loadScores();
     } else {
       state.message = 'Connexion Google non aboutie.';
     }

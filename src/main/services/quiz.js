@@ -31,12 +31,13 @@ function flagUrlFor(country, kind = 'main') {
 }
 
 function filteredCountries(list, difficulty) {
+  const enabledOnly = (list || []).filter((c) => c.enabled !== false);
   const level = DIFFICULTY_RANGES[difficulty];
-  if (!level || difficulty === 'mixed') return list;
-  const filtered = list.filter(
+  if (!level || difficulty === 'mixed') return enabledOnly;
+  const filtered = enabledOnly.filter(
     (c) => c.difficulty >= level.min && c.difficulty <= level.max
   );
-  return filtered.length ? filtered : list;
+  return filtered.length ? filtered : enabledOnly;
 }
 
 function buildOptions(correct, pool) {
@@ -83,6 +84,9 @@ export function createQuizService() {
       flagThumbUrl: c.flagThumbUrl || flagUrlFor(c, 'answer')
     }));
     const pool = filteredCountries(normalized, difficulty);
+    if (!pool.length) {
+      return { mode, difficulty, totalQuestions: 0, questions: [] };
+    }
     const questionsPool = buildQuestionPool(pool, totalQuestions);
     const questions = questionsPool.map((country) => {
       const options = buildOptions(country, pool).map((opt) => ({

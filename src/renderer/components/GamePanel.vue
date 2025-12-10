@@ -78,24 +78,12 @@
             </button>
           </div>
         </footer>
-
-        <NameForm
-          :visible="showNameForm"
-          :players="players"
-          :selected-name="selectedPlayerName"
-          :custom-name="customPlayerName"
-          @update:selected-name="$emit('update:selected-name', $event)"
-          @update:custom-name="$emit('update:custom-name', $event)"
-          @save="$emit('save')"
-        />
       </div>
     </transition>
   </section>
 </template>
 
 <script setup>
-import NameForm from './NameForm.vue';
-
 defineProps({
   quizOptions: { type: Object, required: true },
   questionIndex: { type: Number, required: true },
@@ -109,19 +97,8 @@ defineProps({
   flagBgStyle: { type: Object, default: () => ({}) },
   flagBgStyleFor: { type: Function, required: true },
   buttonClass: { type: Function, required: true },
-  showNameForm: { type: Boolean, required: true },
-  players: { type: Array, required: true },
-  selectedPlayerName: { type: String, default: null },
-  customPlayerName: { type: String, default: '' },
   score: { type: Number, required: true }
 });
 
-defineEmits([
-  'answer',
-  'next',
-  'save',
-  'update:selected-name',
-  'update:custom-name',
-  'flag-error'
-]);
+defineEmits(['answer', 'next', 'end', 'flag-error']);
 </script>
