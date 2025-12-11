@@ -93,13 +93,9 @@ FlagMasters/
 
 ### ▶️ Lancer l’application en mode dev
 
-1. Crée un fichier `.env.local` (non versionné) :
-   ```
-   VITE_FIREBASE_API_KEY=ta_cle_web_firebase
-   ```
-   (La clé Web Firebase n’est pas secrète, mais on évite de la versionner.)
 
-2. Installe et démarre :
+
+ Installe et démarre :
    ```
    npm install
    npm run dev
