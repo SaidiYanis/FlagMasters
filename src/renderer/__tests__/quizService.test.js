@@ -1,9 +1,9 @@
 import { describe, it, expect } from 'vitest'
-import { QuizService } from '../services/quizService'
+import { QuizClientUtils } from '../services/quizClientService'
 
 describe('QuizService', () => {
   it('flagUrlFor builds a CDN URL', () => {
-    const url = QuizService.flagUrlFor({ code: 'FR' }, 'main')
+    const url = QuizClientUtils.flagUrlFor({ code: 'FR' }, 'main')
     expect(url).toContain('flagcdn.com')
     expect(url).toContain('/fr.png')
   })
