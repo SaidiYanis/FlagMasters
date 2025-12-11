@@ -1,4 +1,4 @@
-import { initializeApp } from 'firebase/app'
+import { getApps, initializeApp } from 'firebase/app'
 import {
   getAuth,
   GoogleAuthProvider,
@@ -17,23 +17,19 @@ const firebaseConfig = {
   measurementId: 'G-86195LTSNQ'
 }
 
-const app = initializeApp(firebaseConfig)
+export function getFirebaseApp() {
+  // Initialise l'app Firebase côté renderer (sans clé admin)
+  return getApps().length ? getApps()[0] : initializeApp(firebaseConfig)
+}
+
+const app = getFirebaseApp()
 const auth = getAuth(app)
 const provider = new GoogleAuthProvider()
-// Force the account chooser even si un compte est déjà connu
+// Force the account chooser même si un compte est déjà connu
 provider.setCustomParameters({ prompt: 'select_account' })
 
 export async function loginGoogle() {
-  const result = await signInWithPopup(auth, provider)
-  const user = result.user
-  const token = await user.getIdToken()
-  await window.api?.auth?.setToken?.(token)
-  await window.api?.auth?.users?.save?.({
-    uid: user.uid,
-    displayName: user.displayName,
-    photoURL: user.photoURL,
-    email: user.email
-  })
+  await signInWithPopup(auth, provider)
   return currentUser()
 }
 
@@ -52,25 +48,11 @@ export async function logoutGoogle() {
   await signOut(auth)
   await window.api?.auth?.clear?.()
   // Efface toute session résiduelle pour éviter une reconnexion silencieuse
-  // (Google forcera le sélecteur grâce au prompt=select_account plus haut)
 }
 
 export function subscribeAuth(cb) {
   return onAuthStateChanged(auth, async (u) => {
-    if (u) {
-      try {
-        const token = await u.getIdToken()
-        await window.api?.auth?.setToken?.(token)
-        await window.api?.auth?.users?.save?.({
-          uid: u.uid,
-          displayName: u.displayName,
-          photoURL: u.photoURL,
-          email: u.email
-        })
-      } catch (err) {
-        console.error('[auth] token sync failed', err)
-      }
-    } else {
+    if (!u) {
       await window.api?.auth?.clear?.()
     }
     cb?.(currentUser())

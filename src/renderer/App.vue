@@ -65,7 +65,6 @@
   </div>
 </template>
 
-
 <script setup>
 import { computed, onMounted, reactive, toRefs } from 'vue';
 import logo from '../../resources/logo.png';
@@ -75,6 +74,8 @@ import GamePanel from './components/GamePanel.vue';
 import ScoreModal from './components/ScoreModal.vue';
 import { loadInitialConfig, applyConfigToState } from './services/configService';
 import { loginGoogle as loginFirebase, logoutGoogle, subscribeAuth } from './services/authService';
+import { fetchCountries, addScoreIncrement, listScores } from './services/firestoreService';
+import { generateQuiz } from './services/quizClientService';
 import { useSounds } from './composables/useSounds';
 import buttonSfxUrl from '../../resources/button.mp3';
 import goodSfxUrl from '../../resources/good.mp3';
@@ -202,7 +203,7 @@ function nextQuestion() {
 }
 
 async function recordScoreIncrement(isCorrect) {
-  if (!state.user || !window.api?.scores?.add) return;
+  if (!state.user) return;
   const payload = {
     correct: isCorrect ? 1 : 0,
     total: 1,
@@ -211,7 +212,7 @@ async function recordScoreIncrement(isCorrect) {
     email: state.user.email || ''
   };
   try {
-    await window.api.scores.add(payload);
+    await addScoreIncrement(state.user, payload);
   } catch (err) {
     console.warn('[renderer] score sync failed', err);
   }
@@ -287,9 +288,12 @@ function handleNext() {
 }
 
 async function loadScores() {
-  if (!window.api?.scores?.list) return;
-  const list = await window.api.scores.list();
-  state.scores = Array.isArray(list) ? list : [];
+  try {
+    const list = await listScores();
+    state.scores = Array.isArray(list) ? list : [];
+  } catch (err) {
+    console.error('[renderer] scores load failed', err);
+  }
 }
 
 function showScores() {
@@ -302,17 +306,13 @@ function showScores() {
 
 async function fetchQuiz() {
   resetQuiz();
-  if (!window.api?.quiz?.generate) {
-    state.message = 'Quiz non disponible (API quiz manquante).';
-    return;
-  }
   const payload = {
     mode: state.quizOptions.mode,
     difficulty: state.quizOptions.difficulty,
     totalQuestions: state.quizOptions.totalQuestions
   };
   try {
-    const res = await window.api.quiz.generate(payload);
+    const res = await generateQuiz(payload);
     state.questions = Array.isArray(res?.questions) ? res.questions : [];
     state.totalQuestions = res?.totalQuestions || state.questions.length;
     if (state.totalQuestions > 0) {
@@ -331,22 +331,19 @@ async function loadCountries() {
     state.countries = [];
     return;
   }
-  if (window.api?.countries?.list) {
-    try {
-      const res = await window.api.countries.list();
-      const list = Array.isArray(res) ? res : res?.items;
-      console.log('[renderer] countries loaded', Array.isArray(list) ? list.length : 0);
-      if (Array.isArray(list) && list.length) {
-        state.countries = list;
-        return;
-      }
-      state.message = 'Aucun pays reçu depuis Firestore.';
-    } catch (err) {
-      console.error('[renderer] countries load error', err);
-      state.message = 'Impossible de charger les pays (vérifie Firestore).';
+  try {
+    const list = await fetchCountries();
+    console.log('[renderer] countries loaded', Array.isArray(list) ? list.length : 0);
+    if (Array.isArray(list) && list.length) {
+      state.countries = list;
+      return;
     }
+    state.message = 'Aucun pays reçu depuis Firestore.';
+  } catch (err) {
+    console.error('[renderer] countries load error', err);
+    state.message = 'Impossible de charger les pays (vérifie Firestore).';
+    state.countries = [];
   }
-  state.countries = [];
 }
 
 onMounted(() => {
@@ -404,12 +401,4 @@ async function logout() {
   }
 }
 </script>
-
-
-
-
-
-
-
-
 
