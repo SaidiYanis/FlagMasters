@@ -7,14 +7,10 @@
             <p class="eyebrow">Classement</p>
             <h2>Leaderboard</h2>
           </div>
-          <button class="ghost-btn" type="button" @click="$emit('close')">
-            Fermer
-          </button>
+          <button class="ghost-btn" type="button" @click="$emit('close')">Fermer</button>
         </header>
 
-        <p v-if="scores.length === 0" class="no-scores">
-          Aucun score enregistre©.
-        </p>
+        <p v-if="scores.length === 0" class="no-scores">Aucun score enregistreï¿½.</p>
 
         <ul v-else class="score-list">
           <li
@@ -29,9 +25,7 @@
                 <div class="score-name">{{ item.displayName || item.name || 'Joueur' }}</div>
               </div>
             </div>
-            <div class="score-rate">
-              {{ item.successRate ?? item.totalCorrect ?? 0 }}%
-            </div>
+            <div class="score-rate">{{ item.successRate ?? item.totalCorrect ?? 0 }}%</div>
           </li>
         </ul>
       </div>
@@ -43,14 +37,13 @@
 const props = defineProps({
   visible: { type: Boolean, required: true },
   scores: { type: Array, required: true }
-});
-defineEmits(['close']);
+})
+defineEmits(['close'])
 
 function podiumClass(idx) {
-  if (idx === 0) return 'gold';
-  if (idx === 1) return 'silver';
-  if (idx === 2) return 'bronze';
-  return '';
+  if (idx === 0) return 'gold'
+  if (idx === 1) return 'silver'
+  if (idx === 2) return 'bronze'
+  return ''
 }
 </script>
-

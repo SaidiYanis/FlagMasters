@@ -46,15 +46,11 @@ export function currentUser() {
 
 export async function logoutGoogle() {
   await signOut(auth)
-  await window.api?.auth?.clear?.()
   // Efface toute session résiduelle pour éviter une reconnexion silencieuse
 }
 
 export function subscribeAuth(cb) {
-  return onAuthStateChanged(auth, async (u) => {
-    if (!u) {
-      await window.api?.auth?.clear?.()
-    }
+  return onAuthStateChanged(auth, async () => {
     cb?.(currentUser())
   })
 }

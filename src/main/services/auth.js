@@ -7,11 +7,19 @@ import { getFirestore as getAdminFirestore } from 'firebase-admin/firestore'
 let adminApp
 let currentUid = null
 
+function getServiceAccount() {
+  const jsonEnv = process.env['FM_SERVICE_ACCOUNT_JSON']
+  if (jsonEnv) {
+    return JSON.parse(jsonEnv)
+  }
+  const keyPath =
+    process.env['FM_SERVICE_ACCOUNT_PATH'] || path.join(process.cwd(), 'FM-serviceAccountKey.json')
+  return readFile(keyPath, 'utf-8').then((raw) => JSON.parse(raw))
+}
+
 async function ensureAdmin() {
   if (adminApp) return adminApp
-  const keyPath = path.join(process.cwd(), 'FM-serviceAccountKey.json')
-  const raw = await readFile(keyPath, 'utf-8')
-  const serviceAccount = JSON.parse(raw)
+  const serviceAccount = await getServiceAccount()
   adminApp = getApps().length ? getApp() : initializeApp({ credential: cert(serviceAccount) })
   return adminApp
 }

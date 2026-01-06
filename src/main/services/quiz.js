@@ -1,14 +1,8 @@
 import { listCountries } from './firebaseCountries.js'
 import { getCurrentUid } from './auth.js'
+import { DIFFICULTY_RANGES } from '../../shared/quizConstants.js'
 
 const FLAG_CDN_BASE = 'https://flagcdn.com'
-
-const DIFFICULTY_RANGES = Object.freeze({
-  easy: { min: 130, max: 200 },
-  normal: { min: 50, max: 175 },
-  hard: { min: 0, max: 100 },
-  mixed: { min: 0, max: 200 }
-})
 
 const QUIZ_CONFIG = Object.freeze({
   baseTotalQuestions: 10,
@@ -85,9 +79,7 @@ export function createQuizService() {
       flagUrl: c.flagUrl || flagUrlFor(c, 'main'),
       flagThumbUrl: c.flagThumbUrl || flagUrlFor(c, 'answer')
     }))
-    // Filtre de sécurité : on ne conserve que les pays activés
-    const enabledOnly = normalized.filter((c) => c.enabled !== false)
-    const pool = filteredCountries(enabledOnly, difficulty)
+    const pool = filteredCountries(normalized, difficulty)
     if (!pool.length) {
       return { mode, difficulty, totalQuestions: 0, questions: [] }
     }

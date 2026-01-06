@@ -1,9 +1,9 @@
 {
-  "name": "package",
+  "name": "flagmasters",
   "version": "1.0.0",
-  "description": "A minimal Electron application with JavaScript",
+  "description": "FlagMasters is an Electron app for practicing country flags and quizzes.",
   "main": "./out/main/main.js",
-  "author": "example.com",
+  "author": "SaidiYanis",
   "homepage": "https://electron-vite.org",
   "scripts": {
     "format": "prettier --write .",

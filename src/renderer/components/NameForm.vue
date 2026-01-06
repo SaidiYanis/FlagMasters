@@ -5,7 +5,10 @@
         <label>Choisis ou saisis ton nom :</label>
 
         <div class="field compact">
-          <select :value="selectedName" @change="$emit('update:selected-name', $event.target.value)">
+          <select
+            :value="selectedName"
+            @change="$emit('update:selected-name', $event.target.value)"
+          >
             <option v-for="p in players" :key="p" :value="p">
               {{ p }}
             </option>
@@ -36,6 +39,6 @@ defineProps({
   players: { type: Array, required: true },
   selectedName: { type: String, default: null },
   customName: { type: String, default: '' }
-});
-defineEmits(['update:selected-name', 'update:custom-name', 'save']);
+})
+defineEmits(['update:selected-name', 'update:custom-name', 'save'])
 </script>

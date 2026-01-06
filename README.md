@@ -1,4 +1,5 @@
-# 📘 FlagMasters – Quiz des Drapeaux  
+# 📘 FlagMasters – Quiz des Drapeaux
+
 **Electron + Vite + Vue 3**
 
 FlagMasters est une application moderne permettant d’apprendre les drapeaux du monde via un quiz interactif.  
@@ -9,6 +10,7 @@ Le projet utilise **Electron** pour le desktop, **Vite** pour le bundling rapide
 ## 🎮 Fonctionnalités
 
 ### 🧠 Modes de jeu
+
 - **Trouver le pays** : 1 drapeau → 4 noms
 - **Trouver le drapeau** : 1 nom → 4 drapeaux
 - Indicateur immédiat (correct / incorrect)
@@ -16,12 +18,14 @@ Le projet utilise **Electron** pour le desktop, **Vite** pour le bundling rapide
 - Auth Google obligatoire pour lancer une partie et enregistrer les scores
 
 ### 🎚️ Niveaux de difficulté
+
 - **Facile** (pays très connus)
 - **Normal**
 - **Difficile** (pays moins connus)
 - **Mixte** (tous pays confondus)
 
 ### 🌍 Données des pays
+
 - +175 pays depuis Firestore (`countrySettings`)
 - Codes ISO (compatible FlagCDN)
 - Niveau de difficulté 0 → 200
@@ -29,12 +33,14 @@ Le projet utilise **Electron** pour le desktop, **Vite** pour le bundling rapide
 - Filtrage `enabled` côté back pour exclure les pays désactivés
 
 ### 🎨 Interface utilisateur
+
 - Design sombre moderne
 - Drapeaux harmonisés (aspect-ratio + contain)
 - UI responsive
 - Navigation simple
 
 ### 🔒 Architecture sécurisée
+
 - `contextIsolation: true`, `nodeIntegration: false`, sandbox activé
 - Preload IPC minimal (pas de Node exposé au renderer)
 - CSP stricte (FlagCDN + Google APIs + googleusercontent)
@@ -42,6 +48,7 @@ Le projet utilise **Electron** pour le desktop, **Vite** pour le bundling rapide
 - Firestore accessible via services côté main (pas d’accès direct Node depuis le renderer)
 
 ### 🏗️ Build & packaging
+
 - Installateur `.exe` via `electron-builder`
 - Version portable `win-unpacked`
 - Build optimisé pour Windows
@@ -87,6 +94,7 @@ FlagMasters/
 ## 🚀 Installation et développement
 
 ### 🔧 Prérequis
+
 - Node.js **18+** (recommandé : **20+**)
 - npm **8+**
 - Un projet Firebase configuré (Auth + Firestore) + un compte de service Firebase Admin (FM-serviceAccountKey.json)
@@ -94,9 +102,11 @@ FlagMasters/
 ### ▶️ Lancer l’application en mode dev
 
 1. Crée un fichier `.env.local` (non versionné) :
+
    ```
    VITE_FIREBASE_API_KEY=ta_cle_web_firebase
    ```
+
    (La clé Web Firebase n’est pas secrète, mais on évite de la versionner.)
 
 2. Installe et démarre :
@@ -116,6 +126,7 @@ npm run build:win
 ```
 
 Résultats :
+
 - `dist/package-<version>-setup.exe` (installateur)
 - `dist/win-unpacked/` (application portable)
 
@@ -124,6 +135,7 @@ Résultats :
 ## ✅ Tests
 
 Sous Windows, utilise un seul worker pour éviter les erreurs `EPERM` :
+
 ```
 npx vitest run --pool=threads --poolOptions.threads.singleThread=true
 ```
@@ -134,10 +146,10 @@ npx vitest run --pool=threads --poolOptions.threads.singleThread=true
 
 Le projet suit les bonnes pratiques d’Electron :
 
-- Aucun accès Node dans le renderer  
-- API IPC exposée uniquement via preload  
-- sandbox + isolation du contexte  
-- stricte séparation Main / Preload / Renderer  
+- Aucun accès Node dans le renderer
+- API IPC exposée uniquement via preload
+- sandbox + isolation du contexte
+- stricte séparation Main / Preload / Renderer
 - CSP restrictive
 - Vérification des tokens côté main via Firebase Admin (services `auth.js`)
 - Accès Firestore pour les pays et scores via le process main

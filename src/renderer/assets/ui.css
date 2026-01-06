@@ -12,8 +12,16 @@ body::-webkit-scrollbar {
 }
 
 :root {
-  font-family: 'Poppins', 'Inter', 'SF Pro Rounded', 'Helvetica Neue', system-ui,
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  font-family:
+    'Poppins',
+    'Inter',
+    'SF Pro Rounded',
+    'Helvetica Neue',
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    'Segoe UI',
+    sans-serif;
   font-weight: 700;
 }
 
@@ -28,13 +36,17 @@ body::-webkit-scrollbar {
   min-height: 100vh;
   background:
     radial-gradient(120% 120% at 10% 20%, rgba(0, 198, 215, 0.04), transparent),
-    radial-gradient(90% 90% at 80% 0%, rgba(244, 197, 66, 0.03), transparent),
-    #050c16;
+    radial-gradient(90% 90% at 80% 0%, rgba(244, 197, 66, 0.03), transparent), #050c16;
   color: #eaf4ff;
-  padding: 78px 20px 24px;
+  padding: clamp(10px, 2vw, 20px);
   display: flex;
   flex-direction: column;
   align-items: stretch;
+  gap: clamp(8px, 2vw, 18px);
+}
+
+.app-shell {
+  min-height: 100vh;
 }
 
 .bg-map {
@@ -45,22 +57,25 @@ body::-webkit-scrollbar {
     radial-gradient(circle at 20% 30%, rgba(0, 198, 215, 0.08) 0, rgba(0, 198, 215, 0) 25%),
     linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
     linear-gradient(0deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
-  background-size: 100% 100%, 120px 120px, 120px 120px;
+  background-size:
+    100% 100%,
+    120px 120px,
+    120px 120px;
   opacity: 0.35;
   z-index: 0;
 }
 
 .topbar {
-  position: fixed;
-  top: 16px;
-  left: 20px;
-  right: 20px;
+  position: relative;
   z-index: 5;
   display: flex;
+  flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 16px;
-  border-radius: 18px;
+  flex-wrap: nowrap;
+  gap: clamp(6px, 1.2vw, 12px);
+  padding: clamp(6px, 1.2vw, 12px) clamp(10px, 1.6vw, 16px);
+  border-radius: clamp(14px, 2vw, 18px);
   background: rgba(8, 27, 43, 0.88);
   border: 1px solid rgba(255, 255, 255, 0.04);
   box-shadow:
@@ -73,39 +88,63 @@ body::-webkit-scrollbar {
   display: flex;
   align-items: center;
   gap: 12px;
+  min-width: 0;
 }
 
 .logo {
-  width: 44px;
-  height: 44px;
-  border-radius: 12px;
+  width: clamp(32px, 6vw, 44px);
+  height: clamp(32px, 6vw, 44px);
+  border-radius: clamp(10px, 1.6vw, 12px);
   object-fit: contain;
-  background: radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.15), transparent),
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255, 255, 255, 0.15), transparent),
     rgba(255, 255, 255, 0.05);
-  padding: 6px;
+  padding: clamp(4px, 1.2vw, 6px);
 }
 
 .titles {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
+  max-width: clamp(180px, 30vw, 360px);
 }
 
 .eyebrow {
-  font-size: 11px;
+  font-size: clamp(9px, 1.4vw, 11px);
   text-transform: uppercase;
   letter-spacing: 0.12em;
   color: #00c6d7;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .headline {
-  font-size: 18px;
+  font-size: clamp(14px, 2.2vw, 18px);
   font-weight: 700;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.brand-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(8, 26, 42, 0.85);
+  font-size: 12px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: #cfe6ff;
 }
 
 .top-actions {
   display: flex;
-  gap: 8px;
+  gap: clamp(6px, 1vw, 10px);
+  align-items: center;
+  flex-shrink: 0;
+  flex-wrap: nowrap;
 }
 
 .content {
@@ -113,16 +152,35 @@ body::-webkit-scrollbar {
   z-index: 1;
   display: flex;
   justify-content: center;
-  margin-top: 12px;
+  margin-top: 0;
+  flex: 1;
+  min-height: 0;
+  overflow: visible;
+}
+
+.main-area {
+  align-items: flex-start;
+  padding-bottom: 0;
 }
 
 .card {
-  width: min(980px, 100%);
+  width: 100%;
+  max-width: var(--card-max, 980px);
+  min-height: 0;
+  display: flex;
 }
 
+.game-card {
+  --card-max: clamp(640px, 92vw, 1120px);
+  margin-top: clamp(6px, 2vh, 20px);
+}
+
+.menu-card {
+  --card-max: clamp(520px, 88vw, 900px);
+}
 .glass {
-  background: radial-gradient(120% 120% at 0% 0%, rgba(0, 198, 215, 0.08), transparent),
-    rgba(6, 25, 41, 0.94);
+  background:
+    radial-gradient(120% 120% at 0% 0%, rgba(0, 198, 215, 0.08), transparent), rgba(6, 25, 41, 0.94);
   border-radius: 20px;
   border: 1px solid rgba(255, 255, 255, 0.04);
   box-shadow:
@@ -130,6 +188,9 @@ body::-webkit-scrollbar {
     0 0 0 1px rgba(0, 198, 215, 0.08);
   padding: 22px 22px 24px;
   backdrop-filter: blur(16px);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .panel {
@@ -156,12 +217,71 @@ body::-webkit-scrollbar {
   align-items: center;
 }
 
+.panel-game .content {
+  display: block;
+}
+
+.panel-game {
+  display: flex;
+  flex-direction: column;
+}
+
+.game-content {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.gamebody {
+  padding-bottom: 0;
+}
+
+.gamebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 26, 42, 0.75);
+}
+
+.gamebar-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(0, 198, 215, 0.2);
+  background: rgba(3, 19, 32, 0.85);
+  color: #8fefff;
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+.gamebar-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 12px;
+  color: #c9d8e8;
+}
+
+.gamebar-item {
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: rgba(9, 24, 39, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.gamebar-item.score {
+  color: #f4c542;
+}
+
 .pill {
   padding: 7px 12px;
   border-radius: 999px;
   border: 1px solid rgba(0, 198, 215, 0.25);
-  background: radial-gradient(circle at 0% 0%, rgba(0, 198, 215, 0.2), transparent),
-    rgba(3, 19, 32, 0.95);
+  background:
+    radial-gradient(circle at 0% 0%, rgba(0, 198, 215, 0.2), transparent), rgba(3, 19, 32, 0.95);
   color: #7cefff;
   font-size: 13px;
 }
@@ -396,7 +516,7 @@ body::-webkit-scrollbar {
 
 .answers {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 10px;
 }
 
@@ -407,8 +527,8 @@ body::-webkit-scrollbar {
 .answer-btn {
   padding: 11px 13px;
   border-radius: 14px;
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  background: rgba(8, 26, 42, 0.94);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 26, 42, 0.72);
   color: #e5f4ff;
   text-align: left;
   font-size: 15px;
@@ -421,10 +541,10 @@ body::-webkit-scrollbar {
 }
 
 .answer-btn:hover:enabled {
-  background: rgba(0, 198, 215, 0.16);
-  border-color: rgba(0, 198, 215, 0.55);
+  background: rgba(8, 26, 42, 0.9);
+  border-color: rgba(255, 255, 255, 0.16);
   transform: translateY(-1px);
-  box-shadow: 0 12px 26px rgba(0, 198, 215, 0.2);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.2);
 }
 
 .answer-btn:disabled {
@@ -433,17 +553,21 @@ body::-webkit-scrollbar {
 }
 
 .answer-btn.correct {
-  background: rgba(34, 197, 94, 0.18);
-  border-color: rgba(34, 197, 94, 0.9);
+  background: rgba(8, 26, 42, 0.85);
+  border-color: rgba(34, 197, 94, 0.85);
   color: #d8ffe9;
-  box-shadow: 0 10px 22px rgba(34, 197, 94, 0.3);
+  box-shadow:
+    0 0 0 1px rgba(34, 197, 94, 0.5),
+    0 8px 16px rgba(34, 197, 94, 0.18);
 }
 
 .answer-btn.wrong {
-  background: rgba(239, 68, 68, 0.12);
+  background: rgba(8, 26, 42, 0.85);
   border-color: rgba(239, 68, 68, 0.85);
   color: #ffd4d4;
-  box-shadow: 0 8px 18px rgba(239, 68, 68, 0.25);
+  box-shadow:
+    0 0 0 1px rgba(239, 68, 68, 0.5),
+    0 8px 16px rgba(239, 68, 68, 0.16);
 }
 
 .flag-option {
@@ -458,24 +582,35 @@ body::-webkit-scrollbar {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  margin-top: 6px;
+  margin-top: 4px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  z-index: 2;
+  background: transparent;
 }
 
 .message {
   font-size: 14px;
   color: #c9d8e8;
-  min-height: 20px;
+  min-height: 16px;
+}
+
+.footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
 }
 
 #next-btn {
   padding: 9px 18px;
   border-radius: 999px;
-  border: none;
+  border: 1px solid rgba(0, 198, 215, 0.35);
   font-size: 14px;
-  background: radial-gradient(circle at 0% 0%, #23d9e7, #00a5bd);
-  color: #021320;
+  background: rgba(0, 198, 215, 0.22);
+  color: #eaf4ff;
   cursor: pointer;
-  box-shadow: 0 12px 30px rgba(0, 198, 215, 0.4);
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.25);
   transition:
     transform 0.12s ease,
     box-shadow 0.12s ease,
@@ -656,6 +791,17 @@ body::-webkit-scrollbar {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+.user-chip .user-name {
+  max-width: clamp(80px, 12vw, 140px);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.topbar.is-game .user-chip .user-name {
+  display: none;
+}
+
 .user-chip img {
   width: 26px;
   height: 26px;
@@ -685,52 +831,102 @@ body::-webkit-scrollbar {
 }
 
 @media (max-width: 768px) {
-  .page {
-    padding: 76px 12px 16px;
-  }
-
-  .topbar {
-    left: 12px;
-    right: 12px;
-    padding-inline: 12px;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .headline {
-    font-size: 16px;
-  }
-
-  .content {
-    margin-top: 82px;
-  }
-
   .glass {
     padding: 16px 14px 18px;
   }
 
-  .panel-header.compact {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
-  }
-
-  .stats {
-    width: 100%;
-  }
-
-  .answers,
-  .answers-flags {
+  .answers {
     grid-template-columns: 1fr;
   }
 
   .footer {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+    padding-bottom: 0;
+  }
+
+  .footer-actions {
+    width: 100%;
+  }
+
+  #next-btn {
+    width: 100%;
+  }
+
+  .topbar {
+    padding: 6px 8px;
+    gap: 6px;
+  }
+
+  .topbar .ghost-btn {
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+
+  .top-actions {
+    gap: 12px;
   }
 
   .scores-card {
     padding-inline: 14px;
+  }
+}
+
+@media (max-width: 700px) {
+  .answers-flags {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .footer.game-actions {
+    padding-bottom: calc(clamp(8px, 2vh, 14px) + env(safe-area-inset-bottom, 0px));
+  }
+}
+
+@media (min-width: 701px) and (max-width: 1024px) {
+  .answers-flags {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .footer.game-actions {
+    padding-bottom: clamp(6px, 1.4vh, 10px);
+  }
+
+  .question-text {
+    font-size: 20px;
+  }
+
+  .answer-btn {
+    font-size: 16px;
+    padding: 12px 16px;
+  }
+
+  #next-btn {
+    font-size: 16px;
+    padding: 11px 22px;
+  }
+}
+
+@media (min-width: 1100px) {
+  .answers-flags {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+@media (max-height: 720px) {
+  .page {
+    padding: 8px 12px 12px;
+    gap: 8px;
+  }
+
+  .topbar {
+    padding: 6px 10px;
+  }
+
+  .glass {
+    padding: 16px 14px;
+  }
+
+  .gamebar {
+    padding: 4px 8px;
   }
 }

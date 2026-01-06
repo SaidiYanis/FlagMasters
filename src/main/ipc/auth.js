@@ -1,7 +1,6 @@
-import { ipcMain } from 'electron'
 import { verifyIdToken, saveUserProfile, clearAuth } from '../services/auth.js'
 
-export function registerAuthIpc() {
+export function registerAuthIpc(ipcMain) {
   ipcMain.handle('auth:setToken', async (_e, token) => {
     if (!token) return { ok: false, error: 'missing_token' }
     try {

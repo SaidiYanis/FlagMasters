@@ -45,9 +45,9 @@ function createWindow() {
 function registerIpcHandlers() {
   registerConfigIpc(ipcMain, configService)
   registerScoreIpc(ipcMain, scoreService)
-  registerCountriesIpc()
+  registerCountriesIpc(ipcMain)
   registerQuizIpc(ipcMain, quizService)
-  registerAuthIpc()
+  registerAuthIpc(ipcMain)
 }
 
 app.whenReady().then(() => {

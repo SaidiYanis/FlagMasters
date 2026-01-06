@@ -57,9 +57,7 @@
     </div>
 
     <div class="actions">
-      <button class="primary-btn cta" type="button" @click="$emit('start')">
-        Lancer le quiz
-      </button>
+      <button class="primary-btn cta" type="button" @click="$emit('start')">Lancer le quiz</button>
     </div>
   </section>
 </template>
@@ -69,6 +67,6 @@ defineProps({
   gameMode: { type: String, required: true },
   difficulty: { type: String, required: true },
   questions: { type: Number, required: true }
-});
-defineEmits(['update:gameMode', 'update:difficulty', 'update:questions', 'start']);
+})
+defineEmits(['update:gameMode', 'update:difficulty', 'update:questions', 'start'])
 </script>
