@@ -52,6 +52,7 @@
         <h2>Connexion requise</h2>
         <p>Connecte-toi avec Google pour jouer et enregistrer tes scores.</p>
         <button class="primary-btn" type="button" @click="login">Se connecter avec Google</button>
+        <p v-if="authError" class="login-error">{{ authError }}</p>
       </div>
     </main>
 
@@ -60,7 +61,7 @@
 </template>
 
 <script setup>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import logo from '../../resources/logo.png'
 import TopBar from './components/TopBar.vue'
 import MenuPanel from './components/MenuPanel.vue'
@@ -84,6 +85,7 @@ const { playClick, playGood, playBad, playStart } = useSounds({
 })
 
 const { user, initAuth, login: loginAuth, logout: logoutAuth } = useAuth()
+const authError = ref('')
 
 const {
   scores,
@@ -128,6 +130,7 @@ const {
 const handleAuthChange = (u) => {
   if (u?.uid) {
     console.log('[renderer] user connected', u.uid)
+    authError.value = ''
     backToMenu({ silent: true })
     loadScores()
   } else {
@@ -155,16 +158,21 @@ onMounted(() => {
 async function login() {
   try {
     console.log('[renderer] login click')
+    authError.value = ''
     const res = await loginAuth()
     if (res?.uid) {
       backToMenu({ silent: true })
       loadScores()
     } else {
-      message.value = 'Connexion Google non aboutie.'
+      authError.value = 'Connexion Google non aboutie.'
+      message.value = authError.value
     }
   } catch (err) {
+    const code = err?.code || 'unknown'
+    const text = err?.message || 'Connexion Google impossible.'
     console.error('[renderer] login error', err)
-    message.value = 'Connexion Google impossible.'
+    authError.value = `Connexion Google impossible: ${code}`
+    message.value = text
   }
 }
 
