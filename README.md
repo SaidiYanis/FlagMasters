@@ -44,7 +44,6 @@ Le projet utilise **Electron** pour le desktop, **Vite** pour le bundling rapide
 - `contextIsolation: true`, `nodeIntegration: false`, sandbox activé
 - Preload IPC minimal (pas de Node exposé au renderer)
 - CSP stricte (FlagCDN + Google APIs + googleusercontent)
-- Auth Google Web SDK côté renderer ; vérification du token via Firebase Admin côté main
 - Firestore accessible via services côté main (pas d’accès direct Node depuis le renderer)
 
 ### 🏗️ Build & packaging
